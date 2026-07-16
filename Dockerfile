@@ -2,8 +2,11 @@
 # langsung oleh Node (native TypeScript execution), bukan lewat next build.
 FROM node:24-alpine
 
-# libc6-compat dibutuhkan beberapa native dependency Next.js di Alpine
-RUN apk add --no-cache libc6-compat
+# libc6-compat dibutuhkan beberapa native dependency Next.js di Alpine.
+# libreoffice + poppler-utils dibutuhkan src/lib/ppt/convert.ts (soffice + pdftoppm)
+# buat konversi PPT guru jadi gambar per-slide yang ditampilkan di layar proyektor —
+# tanpa ini, upload PPT tetap jalan (lampiran unduh), cuma slide tidak akan pernah tampil.
+RUN apk add --no-cache libc6-compat libreoffice poppler-utils
 
 WORKDIR /app
 

@@ -26,6 +26,8 @@ export function ResumeView({
   glossary,
   mindMap,
   questions,
+  pptUrl,
+  pptName,
 }: {
   title: string;
   subject: string;
@@ -37,6 +39,8 @@ export function ResumeView({
   glossary: GlossaryItem[];
   mindMap: MindMapStructure | null;
   questions: ReviewQuestion[];
+  pptUrl?: string | null;
+  pptName?: string | null;
 }) {
   const mindMapRef = useRef<HTMLDivElement>(null);
   const [exportingMindMap, setExportingMindMap] = useState(false);
@@ -137,6 +141,20 @@ export function ResumeView({
           <p className="text-base text-neutral-400 font-bold">Oops! Peta pikiran (mind map) belum siap nih. Tunggu bapak/ibu guru ya! 🗺️</p>
         )}
       </section>
+
+      {pptUrl && (
+        <a
+          href={pptUrl}
+          download={pptName ?? undefined}
+          className="flex items-center justify-between rounded-2xl bg-white p-5 shadow-md border-2 border-primary/5 hover:border-primary/30 transition"
+        >
+          <div>
+            <h2 className="text-sm font-black text-primary tracking-wide uppercase">Materi PPT dari Guru 📎</h2>
+            <p className="text-sm font-medium text-neutral-500 mt-1">{pptName ?? "Unduh materi"}</p>
+          </div>
+          <span className="text-sm font-extrabold text-teal-600">Unduh ⬇️</span>
+        </a>
+      )}
 
       {questions.length > 0 && (
         <section className="rounded-2xl bg-white p-6 shadow-md border-2 border-primary/5 flex flex-col gap-3">

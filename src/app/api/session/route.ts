@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Tidak terautentikasi" }, { status: 401 });
   }
 
-  const { title, subject, grade } = await req.json();
+  const { title, subject, grade, theme } = await req.json();
   if (!title || !subject || !grade) {
     return NextResponse.json(
       { error: "Judul, mata pelajaran, dan kelas wajib diisi" },
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
   }
 
   const created = await prisma.session.create({
-    data: { title, subject, grade, teacherId: teacher.id },
+    data: { title, subject, grade, theme: theme || null, teacherId: teacher.id },
   });
 
   return NextResponse.json({ session: created }, { status: 201 });

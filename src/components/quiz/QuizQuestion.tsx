@@ -79,7 +79,7 @@ export function QuizQuestion({
   return (
     <div className={isProjector ? "flex flex-col items-center gap-6 text-white" : "flex flex-col gap-4"}>
       <div className="flex w-full items-center justify-between text-sm">
-        <span className={isProjector ? "text-neutral-400" : "text-neutral-500"}>
+        <span className={isProjector ? "text-sky-300/80" : "text-neutral-500"}>
           Soal {questionNumber} dari {totalQuestions}
         </span>
         {phase === "question" && (

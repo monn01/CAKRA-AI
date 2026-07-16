@@ -1,3 +1,5 @@
+import { TypewriterText } from "@/components/live/TypewriterText";
+
 export function LiveCaption({
   finalLines,
   interimLine,
@@ -11,13 +13,14 @@ export function LiveCaption({
 }) {
   const hasContent = finalLines.length > 0 || interimLine.length > 0;
   const mutedClass = light ? "text-neutral-400" : "text-neutral-500";
-  const dimClass = light ? "text-neutral-500" : "text-neutral-400";
+  const dimClass = light ? "text-sky-700/60" : "text-sky-200/60";
   const activeClass = light ? "text-neutral-900" : "text-white";
 
   return (
-    <div className="flex h-full w-full items-center justify-center px-12">
+    <div className="relative z-10 flex h-full w-full flex-col items-center justify-end px-12 pb-[12%]">
       {!hasContent ? (
         <p className={`text-center ${mutedClass}`} style={{ fontSize: fontSize * 0.6 }}>
+          <span className="cute-bounce mr-2 inline-block">🎙️</span>
           Menunggu suara guru...
         </p>
       ) : (
@@ -36,7 +39,7 @@ export function LiveCaption({
           ))}
           {interimLine && (
             <p className={activeClass} style={{ fontSize }}>
-              {interimLine}
+              <TypewriterText text={interimLine} />
             </p>
           )}
         </div>

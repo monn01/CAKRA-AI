@@ -17,9 +17,9 @@ export default async function QuizProjectorPage({
 
   if (!quiz || !quiz.roomCode) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-neutral-950 px-6 text-center">
+      <main className="flex min-h-screen flex-col items-center justify-center bg-indigo-950 px-6 text-center">
         <p className="text-2xl text-white">Quiz belum dibuka oleh guru.</p>
-        <p className="mt-2 text-sm text-neutral-500">Sesi: {sessionId}</p>
+        <p className="mt-2 text-sm text-sky-300/70">Sesi: {sessionId}</p>
       </main>
     );
   }

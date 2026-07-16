@@ -6,6 +6,7 @@ import { QuizLobby } from "@/components/quiz/QuizLobby";
 import { QuizQuestion } from "@/components/quiz/QuizQuestion";
 import { QuizLeaderboard } from "@/components/quiz/QuizLeaderboard";
 import { QuizResults } from "@/components/quiz/QuizResults";
+import { ProjectorBackground } from "@/components/live/ProjectorBackground";
 
 type QuestionData = {
   questionId: string;
@@ -140,25 +141,30 @@ export function QuizProjectorGame({
 
   if (phase === "waiting") {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-neutral-950 px-6 text-center">
-        <p className="text-2xl text-white">Menunggu update dari guru...</p>
+      <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-indigo-950 px-6 text-center">
+        <ProjectorBackground seed={5} />
+        <p className="relative z-10 text-2xl text-white">Menunggu update dari guru...</p>
       </main>
     );
   }
 
   if (phase === "finished") {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-6 bg-neutral-950 px-6 py-10 text-center">
-        <p className="text-3xl font-semibold text-white">Quiz Selesai!</p>
-        <QuizResults rankings={rankings} breakdown={breakdown} />
+      <main className="relative flex min-h-screen flex-col items-center justify-center gap-6 overflow-hidden bg-indigo-950 px-6 py-10 text-center">
+        <ProjectorBackground seed={5} />
+        <p className="relative z-10 text-3xl font-semibold text-white">Quiz Selesai!</p>
+        <div className="relative z-10">
+          <QuizResults rankings={rankings} breakdown={breakdown} />
+        </div>
       </main>
     );
   }
 
   if ((phase === "question" || phase === "reveal") && question) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-8 bg-neutral-950 px-6 py-10">
-        <div key={question.questionId} className="quiz-question-enter w-full max-w-3xl">
+      <main className="relative flex min-h-screen flex-col items-center justify-center gap-8 overflow-hidden bg-indigo-950 px-6 py-10">
+        <ProjectorBackground seed={5} />
+        <div key={question.questionId} className="quiz-question-enter relative z-10 w-full max-w-3xl">
           <QuizQuestion
             variant="projector"
             question={question.question}
@@ -174,14 +180,14 @@ export function QuizProjectorGame({
         </div>
 
         {phase === "question" && (
-          <p className="text-neutral-400">
+          <p className="relative z-10 text-sky-300/80">
             {progress.answered} dari {progress.total} siswa sudah menjawab
           </p>
         )}
 
         {phase === "reveal" && rankings.length > 0 && (
-          <div className="flex flex-col items-center gap-3">
-            <p className="text-lg text-neutral-400">Papan Peringkat</p>
+          <div className="relative z-10 flex flex-col items-center gap-3">
+            <p className="text-lg text-sky-300/80">Papan Peringkat</p>
             <QuizLeaderboard rankings={rankings} />
           </div>
         )}

@@ -54,6 +54,8 @@ export default async function ResumePage({
       glossary={(session.summary?.glossary as { term: string; definition: string }[] | null) ?? []}
       mindMap={session.mindMap ? (session.mindMap.structure as unknown as MindMapStructure) : null}
       questions={questions}
+      pptUrl={session.pptUrl}
+      pptName={session.pptName}
     />
   );
 }

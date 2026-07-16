@@ -19,9 +19,10 @@ export function TranscriptDisplay({
   const activeClass = light ? "text-neutral-900" : "text-white";
 
   return (
-    <div className="h-full w-full overflow-y-auto px-12 py-10">
+    <div className="relative z-10 h-full w-full overflow-y-auto px-12 py-10">
       {!fullText ? (
         <p className={`text-center ${mutedClass}`} style={{ fontSize: fontSize * 0.6 }}>
+          <span className="cute-bounce mr-2 inline-block">🎙️</span>
           Menunggu suara guru...
         </p>
       ) : (

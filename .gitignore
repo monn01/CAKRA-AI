@@ -36,6 +36,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# lampiran PPT guru (file upload lokal)
+/public/uploads
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

@@ -26,4 +26,9 @@ EXPOSE 3000
 # server.ts (custom server) tidak dibundle next build — file .ts sumber
 # dan node_modules harus tetap ada di image runtime (bukan cuma next standalone output,
 # yang menurut dokumentasi Next.js tidak kompatibel dengan custom server).
-CMD ["npm", "start"]
+#
+# `prisma db push` dijalankan tiap container start (bukan cuma sekali manual) supaya
+# skema di database produksi otomatis sinkron begitu image baru di-deploy — aman
+# diulang (idempotent), konsisten dengan alur `npx prisma db push` yang dipakai
+# sepanjang proyek ini (bukan `prisma migrate`).
+CMD ["sh", "-c", "npx prisma db push --skip-generate && npm start"]

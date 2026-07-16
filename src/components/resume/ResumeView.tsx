@@ -61,15 +61,16 @@ export function ResumeView({
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-[400px] flex-col gap-4 bg-neutral-50 px-4 py-6">
+    <div className="mx-auto flex w-full max-w-[420px] flex-col gap-6 bg-neutral-50 px-6 py-8 shadow-sm rounded-3xl min-h-screen">
       <SubjectBanner subject={subject} />
 
-      <div>
-        <h1 className="text-lg font-semibold text-neutral-900">{title}</h1>
-        <p className="text-sm text-neutral-500">
-          {subject} · Kelas {grade} · {dateLabel}
+      <div className="px-1 bg-white p-5 rounded-2xl border-2 border-primary/10 shadow-sm">
+        <p className="text-base font-black text-secondary mb-2">👋 Halo! Ini catatan belajar seru kita hari ini. Yuk dibaca lagi agar makin pintar! 🌟</p>
+        <h1 className="text-2xl font-black text-primary leading-tight">{title}</h1>
+        <p className="text-base font-extrabold text-neutral-500 mt-2">
+          📚 {subject} · Kelas {grade}
         </p>
-        <p className="text-sm text-neutral-500">Guru: {teacherName}</p>
+        <p className="text-sm font-bold text-neutral-400 mt-1">🗓️ {dateLabel} · Guru: {teacherName}</p>
       </div>
 
       <ResumeActions
@@ -85,61 +86,61 @@ export function ResumeView({
         mindMapRef={mindMap ? mindMapRef : null}
       />
 
-      <section className="rounded-xl bg-white p-4">
-        <h2 className="mb-2 text-sm font-medium text-neutral-500">Rangkuman</h2>
+      <section className="rounded-2xl bg-white p-6 shadow-md border-2 border-primary/5 flex flex-col gap-3">
+        <h2 className="text-sm font-black text-primary tracking-wide uppercase">Rangkuman 📝</h2>
         {summaryContent ? (
           <>
-            <p className="whitespace-pre-wrap text-sm text-neutral-700">{summaryContent}</p>
+            <p className="whitespace-pre-wrap text-base font-medium text-neutral-700 leading-relaxed">{summaryContent}</p>
             {keyPoints.length > 0 && (
-              <ul className="mt-3 list-disc space-y-1 pl-5 text-sm text-neutral-700">
+              <ul className="mt-2 list-disc space-y-2 pl-5 text-base font-medium text-neutral-700">
                 {keyPoints.map((point, i) => (
-                  <li key={i}>{point}</li>
+                  <li key={i} className="leading-relaxed">{point}</li>
                 ))}
               </ul>
             )}
           </>
         ) : (
-          <p className="text-sm text-neutral-400">Rangkuman belum tersedia untuk sesi ini.</p>
+          <p className="text-base text-neutral-400 font-bold">Oops! Rangkuman catatan belum siap nih. Tunggu bapak/ibu guru membuatnya ya! ⏳</p>
         )}
       </section>
 
       {glossary.length > 0 && (
-        <section className="rounded-xl bg-white p-4">
-          <h2 className="mb-2 text-sm font-medium text-neutral-500">Istilah Penting</h2>
-          <dl className="flex flex-col gap-1.5 text-sm">
+        <section className="rounded-2xl bg-white p-6 shadow-md border-2 border-primary/5 flex flex-col gap-3">
+          <h2 className="text-sm font-black text-primary tracking-wide uppercase">Istilah Penting 🔍</h2>
+          <dl className="flex flex-col gap-3 text-base">
             {glossary.map((item, i) => (
-              <div key={i}>
-                <dt className="inline font-medium text-neutral-900">{item.term}: </dt>
-                <dd className="inline text-neutral-700">{item.definition}</dd>
+              <div key={i} className="bg-sky-50/50 p-3 rounded-xl border border-primary/10">
+                <dt className="font-extrabold text-primary mb-1">{item.term}</dt>
+                <dd className="text-neutral-700 font-medium leading-relaxed">{item.definition}</dd>
               </div>
             ))}
           </dl>
         </section>
       )}
 
-      <section className="rounded-xl bg-white p-4">
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-medium text-neutral-500">Mind Map</h2>
+      <section className="rounded-2xl bg-white p-6 shadow-md border-2 border-primary/5 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-black text-primary tracking-wide uppercase">Mind Map 🗺️</h2>
           {mindMap && (
             <button
               onClick={handleDownloadMindMap}
               disabled={exportingMindMap}
-              className="text-sm font-medium text-teal-600 hover:underline disabled:opacity-50"
+              className="text-sm font-extrabold text-teal-600 hover:text-teal-700 hover:underline disabled:opacity-50 cursor-pointer"
             >
-              {exportingMindMap ? "Mengunduh..." : "Unduh PNG"}
+              {exportingMindMap ? "Mengunduh..." : "Unduh Gambar 📥"}
             </button>
           )}
         </div>
         {mindMap ? (
           <InteractiveMindMap ref={mindMapRef} structure={mindMap} height={320} />
         ) : (
-          <p className="text-sm text-neutral-400">Mind map belum tersedia untuk sesi ini.</p>
+          <p className="text-base text-neutral-400 font-bold">Oops! Peta pikiran (mind map) belum siap nih. Tunggu bapak/ibu guru ya! 🗺️</p>
         )}
       </section>
 
       {questions.length > 0 && (
-        <section className="rounded-xl bg-white p-4">
-          <h2 className="mb-2 text-sm font-medium text-neutral-500">Soal & Pembahasan</h2>
+        <section className="rounded-2xl bg-white p-6 shadow-md border-2 border-primary/5 flex flex-col gap-3">
+          <h2 className="text-sm font-black text-primary tracking-wide uppercase">Soal & Pembahasan ✍️</h2>
           <QuizReview questions={questions} />
         </section>
       )}

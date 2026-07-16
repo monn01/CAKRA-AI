@@ -16,9 +16,9 @@ export default async function QuizJoinPage({
 
   if (!session || !quiz) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-6 text-center dark:bg-neutral-950">
-        <p className="text-lg text-neutral-700 dark:text-neutral-300">
-          Quiz belum tersedia untuk sesi ini.
+      <main className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 px-6 text-center">
+        <p className="text-xl font-bold text-neutral-600">
+          Oops! Kuis seru belum disiapkan oleh bapak/ibu guru untuk pelajaran ini nih... 😅⏳
         </p>
       </main>
     );

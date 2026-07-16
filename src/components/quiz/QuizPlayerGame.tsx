@@ -119,26 +119,38 @@ export function QuizPlayerGame({
   }
 
   if (phase === "loading-results") {
-    return <p className="text-sm text-neutral-500">Memuat hasil...</p>;
+    return (
+      <div className="flex flex-col items-center gap-4 text-center p-8 bg-white rounded-2xl shadow-lg border-3 border-primary/20 max-w-sm w-full">
+        <div className="flex gap-3 justify-center mb-1">
+          <span className="cute-bounce text-4xl" style={{ animationDelay: "0s" }}>🎈</span>
+          <span className="cute-bounce text-4xl" style={{ animationDelay: "0.15s" }}>🧸</span>
+          <span className="cute-bounce text-4xl" style={{ animationDelay: "0.3s" }}>✨</span>
+        </div>
+        <p className="text-xl font-black text-primary">Tunggu sebentar ya... ⏳</p>
+        <p className="text-base font-bold text-neutral-500">Sedang mengumpulkan nilai kuis kamu! 🏆🌟</p>
+      </div>
+    );
   }
 
   if (phase === "waiting") {
     return (
-      <div className="flex flex-col items-center gap-3 text-center">
-        <div className="h-3 w-3 animate-pulse rounded-full bg-emerald-500" />
-        <p className="text-lg font-medium text-neutral-900 dark:text-neutral-50">
-          Kamu sudah bergabung
+      <div className="flex flex-col items-center gap-5 text-center bg-white p-8 rounded-lg shadow-lg border-3 border-primary/30 max-w-sm w-full">
+        <div className="h-4 w-4 animate-ping rounded-full bg-emerald-500" />
+        <p className="text-2xl font-black text-primary">
+          Hore! Kamu Sudah Masuk! 🎉
         </p>
-        <p className="text-sm text-neutral-500">Menunggu guru memulai quiz...</p>
+        <p className="text-base font-bold text-neutral-500">
+          Tunggu sebentar ya, bapak/ibu guru sedang bersiap memulai kuis... 🎯
+        </p>
       </div>
     );
   }
 
   if (phase === "finished") {
     return (
-      <div className="flex flex-col items-center gap-4 text-center">
-        <p className="text-xl font-semibold text-neutral-900 dark:text-neutral-50">
-          Quiz Selesai!
+      <div className="flex flex-col items-center gap-6 text-center w-full">
+        <p className="text-3xl font-black text-primary">
+          Quiz Selesai! Hore! 🥳🏆
         </p>
         <QuizResults rankings={rankings} breakdown={breakdown} light />
       </div>
@@ -147,7 +159,7 @@ export function QuizPlayerGame({
 
   if ((phase === "question" || phase === "answered" || phase === "result") && question) {
     return (
-      <div className="flex w-full max-w-md flex-col gap-4">
+      <div className="flex w-full max-w-md flex-col gap-6">
         <QuizQuestion
           variant="player"
           question={question.question}
@@ -164,22 +176,35 @@ export function QuizPlayerGame({
         />
 
         {phase === "answered" && (
-          <p className="text-center text-sm text-neutral-500">Jawaban terkirim, menunggu...</p>
+          <p className="text-center text-lg font-black text-primary animate-pulse mt-4">
+            Jawaban kamu sudah terkirim! Keren! 🌟🚀
+          </p>
         )}
 
         {phase === "result" && result && (
           <div
-            className={`rounded-lg p-3 text-center text-sm ${
+            className={`rounded-lg p-5 text-center text-base shadow-lg border-3 transition-all ${
               result.correct
-                ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
-                : "bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400"
+                ? "bg-emerald-50 border-emerald-300 text-emerald-800"
+                : "bg-red-50 border-red-200 text-red-700"
             }`}
           >
-            <p className="font-medium">
-              {result.correct ? `Benar! +${result.pointsEarned} poin` : "Kurang tepat"}
+            <p className="text-2xl font-black mb-2">
+              {result.correct ? "Hebat! Jawabanmu BENAR! 🥳" : "Yah, belum tepat... 🥹"}
             </p>
-            {result.explanation && <p className="mt-1 text-xs opacity-80">{result.explanation}</p>}
-            <p className="mt-1 text-xs opacity-80">Total skor: {result.score}</p>
+            {result.correct && (
+              <p className="text-lg font-extrabold text-emerald-600 mb-2">
+                Kamu dapat +{result.pointsEarned} poin! 🏆
+              </p>
+            )}
+            {result.explanation && (
+              <p className="mt-2 text-sm font-semibold opacity-90 border-t border-dashed border-current pt-2 text-left">
+                💡 Penjelasan: {result.explanation}
+              </p>
+            )}
+            <p className="mt-3 text-lg font-black text-neutral-700">
+              Total Skor Kamu: {result.score} ⭐
+            </p>
           </div>
         )}
       </div>

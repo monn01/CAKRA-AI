@@ -78,13 +78,13 @@ export function QuizResults({
 
       <button
         onClick={() => setShowBreakdown((v) => !v)}
-        className={`text-sm underline ${mutedClass}`}
+        className={`text-sm font-bold underline cursor-pointer ${mutedClass}`}
       >
-        {showBreakdown ? "Sembunyikan pembahasan" : "Lihat pembahasan soal"}
+        {showBreakdown ? "Tutup pembahasan 🙈" : "Tengok jawaban & pembahasan yuk! 💡✨"}
       </button>
 
       {showBreakdown && (
-        <div className="flex w-full flex-col gap-2">
+        <div className="flex w-full flex-col gap-3">
           {breakdown.map((item, i) => {
             const pct =
               item.totalAnswered > 0
@@ -93,17 +93,21 @@ export function QuizResults({
             return (
               <div
                 key={item.questionId}
-                className={`rounded-md p-3 text-left text-sm ${
-                  light ? "bg-neutral-100" : "bg-white/10"
+                className={`rounded-2xl p-4 text-left text-sm ${
+                  light ? "bg-neutral-100/80 border border-primary/10" : "bg-white/10"
                 }`}
               >
-                <p className={`font-medium ${textClass}`}>
+                <p className={`font-bold ${textClass} mb-1`}>
                   {i + 1}. {item.question}
                 </p>
-                <p className={mutedClass}>
-                  {pct}% siswa menjawab benar · Jawaban benar: {item.correctAnswer}
+                <p className={`${mutedClass} font-semibold text-xs`}>
+                  🎯 {pct}% teman-teman berhasil menjawab benar! · Kunci Jawaban: {item.correctAnswer}
                 </p>
-                {item.explanation && <p className={`mt-1 ${mutedClass}`}>{item.explanation}</p>}
+                {item.explanation && (
+                  <p className={`mt-2 p-2 bg-white/50 rounded-lg text-xs font-medium ${mutedClass}`}>
+                    💡 Penjelasan: {item.explanation}
+                  </p>
+                )}
               </div>
             );
           })}

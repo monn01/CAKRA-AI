@@ -1,28 +1,53 @@
 @import "tailwindcss";
 
+/* Menonaktifkan prefers-color-scheme dark mode bawaan Tailwind v4 dengan beralih ke selector class */
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f0f9ff; /* Biru langit pastel yang ceria dan ramah anak */
+  --foreground: #1e293b; /* Slate 800 yang lembut dan kontras tinggi untuk teks */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  
+  /* Warna tema ceria ramah anak SD */
+  --color-primary: #0284c7; /* Biru langit ceria (sky 600) */
+  --color-secondary: #f59e0b; /* Kuning/Amber ceria (amber 500) */
+  --color-accent: #f97316; /* Oranye ceria (orange 500) */
+  --color-success: #10b981; /* Hijau ceria (emerald 500) */
+
+  /* Radius sudut membulat empuk/gelembung (chunky & bubble-like) */
+  --radius-sm: 10px;
+  --radius-md: 18px;
+  --radius-lg: 28px;
+  --radius-xl: 36px;
+  
+  /* Petakan neutral colors ke slate agar terasa lebih lembut dan ceria (tidak kaku/abu-abu besi) */
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-400: #94a3b8;
+  --color-neutral-500: #64748b;
+  --color-neutral-600: #475569;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1e293b;
+  --color-neutral-900: #0f172a;
+  --color-neutral-950: #020617; /* Tetap gelap untuk layar proyektor */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  font-size: 18px; /* Memperbesar ukuran dasar teks untuk anak-anak */
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  line-height: 1.6;
 }
 
 @keyframes quiz-question-enter {
@@ -39,3 +64,58 @@ body {
 .quiz-question-enter {
   animation: quiz-question-enter 0.35s ease-out;
 }
+
+/* --- Animasi & Transisi Interaktif Ceria (Ramah Anak) --- */
+
+/* 1. Transisi Halus Antar-Halaman (Page Slide & Fade-In) */
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+main {
+  animation: page-enter 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* 2. Efek Hover & Tekan Membal (Springy Bounce) pada Tombol */
+button:not([class*="react-flow"]) {
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease-in-out, background-color 0.2s ease !important;
+}
+button:not([class*="react-flow"]):hover:not(:disabled) {
+  transform: scale(1.06) translateY(-1px) !important;
+}
+button:not([class*="react-flow"]):active:not(:disabled) {
+  transform: scale(0.96) translateY(0) !important;
+}
+
+/* 3. Efek Hover Mengambang Lembut pada Kartu-Kartu (Cards) */
+.rounded-2xl {
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.3s ease-in-out;
+}
+.rounded-2xl:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 28px -5px rgba(2, 132, 199, 0.12), 0 8px 12px -6px rgba(2, 132, 199, 0.08);
+}
+
+/* 4. Indikator Pemuatan Lucu (Cute Loading Bounce Wave) */
+@keyframes cute-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.cute-bounce {
+  display: inline-block;
+  animation: cute-bounce 0.6s ease-in-out infinite;
+}
+
+

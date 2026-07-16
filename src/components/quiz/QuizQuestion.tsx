@@ -17,16 +17,16 @@ function optionColor({
 }) {
   if (phase !== "reveal") {
     return selectedAnswer === letter
-      ? "border-neutral-900 bg-neutral-100 dark:border-neutral-50 dark:bg-neutral-800"
-      : "border-neutral-200 bg-white dark:border-neutral-700 dark:bg-neutral-900";
+      ? "border-primary bg-sky-100 text-primary font-black shadow-md"
+      : "border-neutral-200 bg-white text-neutral-800 shadow-sm";
   }
   if (letter === correctAnswer) {
-    return "border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400";
+    return "border-emerald-500 bg-emerald-50 text-emerald-700 font-black shadow-md";
   }
   if (letter === selectedAnswer) {
-    return "border-red-400 bg-red-50 text-red-600 dark:bg-red-950 dark:text-red-400";
+    return "border-red-400 bg-red-50 text-red-600 font-extrabold";
   }
-  return "border-neutral-200 bg-white opacity-60 dark:border-neutral-700 dark:bg-neutral-900";
+  return "border-neutral-200 bg-white opacity-40 text-neutral-400";
 }
 
 export function QuizQuestion({
@@ -93,7 +93,7 @@ export function QuizQuestion({
         {question}
       </p>
 
-      <div className="grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2">
         {options.map((opt, i) => {
           const letter = LETTERS[i];
           const isClickable =
@@ -107,19 +107,19 @@ export function QuizQuestion({
               type="button"
               disabled={!isClickable}
               onClick={() => isClickable && onSelectAnswer?.(letter)}
-              className={`relative overflow-hidden rounded-lg border-2 p-4 text-left text-sm font-medium transition ${optionColor(
+              className={`relative overflow-hidden rounded-2xl border-3 p-5 text-left text-lg font-bold transition-all ${optionColor(
                 { letter, phase, correctAnswer, selectedAnswer }
-              )} ${isClickable ? "cursor-pointer hover:border-neutral-400" : "cursor-default"}`}
+              )} ${isClickable ? "cursor-pointer hover:border-primary hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-98" : "cursor-default"}`}
             >
               {phase === "reveal" && (
                 <div
-                  className="absolute inset-y-0 left-0 bg-black/5 dark:bg-white/5"
+                  className="absolute inset-y-0 left-0 bg-black/5"
                   style={{ width: `${pct}%` }}
                 />
               )}
               <span className="relative">{opt}</span>
               {phase === "reveal" && (
-                <span className="relative float-right text-xs opacity-70">{pct}%</span>
+                <span className="relative float-right text-base font-black opacity-80">{pct}%</span>
               )}
             </button>
           );

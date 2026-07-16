@@ -41,24 +41,24 @@ export function QuizJoinForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-3">
+    <form onSubmit={handleSubmit} className="flex w-full max-w-sm flex-col gap-4">
       <input
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Nama kamu"
+        placeholder="Tulis nama kamu di sini... ✍"
         maxLength={24}
         required
-        className="rounded-md border border-neutral-300 px-4 py-3 text-center text-lg outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-800"
+        className="rounded-full border-3 border-primary bg-white px-6 py-4 text-center text-xl font-bold shadow-md outline-none focus:border-secondary transition-all placeholder:text-neutral-400"
       />
 
-      {error && <p className="text-center text-sm text-red-600">{error}</p>}
+      {error && <p className="text-center text-sm font-semibold text-red-600">{error}</p>}
 
       <button
         type="submit"
         disabled={joining}
-        className="rounded-md bg-neutral-900 px-4 py-3 text-lg font-medium text-white hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900"
+        className="rounded-full bg-secondary hover:bg-amber-500 px-6 py-4 text-xl font-extrabold text-white shadow-lg active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
       >
-        {joining ? "Bergabung..." : "Gabung Quiz"}
+        {joining ? "Sedang masuk... 🚀" : "Mulai Ikut Quiz! 🎉"}
       </button>
     </form>
   );

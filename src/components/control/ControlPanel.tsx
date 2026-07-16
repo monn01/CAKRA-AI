@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { SpeechHandler } from "@/lib/stt/speech-handler";
 import { getSocketClient } from "@/lib/socket/client";
+import { Button } from "@/components/ui/Button";
 
 type RecordingState = "idle" | "recording" | "paused" | "ended";
 
@@ -30,10 +31,12 @@ export function ControlPanel({
   sessionId,
   initialFullText,
   initialStatus,
+  pptSlideCount = 0,
 }: {
   sessionId: string;
   initialFullText: string;
   initialStatus: string;
+  pptSlideCount?: number;
 }) {
   const [recordingState, setRecordingState] = useState<RecordingState>(
     initialStatus === "COMPLETED" || initialStatus === "PROCESSING" ? "ended" : "idle"
@@ -45,6 +48,7 @@ export function ControlPanel({
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [displayMode, setDisplayMode] = useState<"caption" | "full">("caption");
+  const [slideIndex, setSlideIndex] = useState(0);
 
   const handlerRef = useRef<SpeechHandler | null>(null);
   const startedRef = useRef(false);
@@ -145,6 +149,12 @@ export function ControlPanel({
     getSocketClient().emit("display:mode", { sessionId, mode: next });
   }
 
+  function handleSlideChange(next: number) {
+    if (next < 0 || next >= pptSlideCount) return;
+    setSlideIndex(next);
+    getSocketClient().emit("ppt:slide", { sessionId, index: next });
+  }
+
   const badge = STATUS_BADGE[recordingState];
 
   return (
@@ -190,6 +200,32 @@ export function ControlPanel({
         </button>
       </div>
 
+      {pptSlideCount > 0 && (
+        <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm dark:border-neutral-800 dark:bg-neutral-900">
+          <span className="text-neutral-500">
+            Slide PPT: {slideIndex + 1} / {pptSlideCount}
+          </span>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="md"
+              onClick={() => handleSlideChange(slideIndex - 1)}
+              disabled={slideIndex === 0}
+            >
+              ← Sebelumnya
+            </Button>
+            <Button
+              variant="outline"
+              size="md"
+              onClick={() => handleSlideChange(slideIndex + 1)}
+              disabled={slideIndex >= pptSlideCount - 1}
+            >
+              Berikutnya →
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="min-h-[96px] rounded-lg border border-neutral-200 bg-neutral-50 p-4 text-sm text-neutral-500 dark:border-neutral-800 dark:bg-neutral-900">
         {liveLines.length === 0 ? (
           <p>Transkrip live akan muncul di sini saat mulai merekam...</p>
@@ -202,52 +238,37 @@ export function ControlPanel({
 
       <div className="flex gap-2">
         {recordingState === "idle" && (
-          <button
-            onClick={handleStart}
-            className="flex-1 rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
-          >
+          <Button variant="primary" size="lg" onClick={handleStart} className="flex-1">
             Mulai Merekam
-          </button>
+          </Button>
         )}
 
         {recordingState === "recording" && (
           <>
-            <button
-              onClick={handlePause}
-              className="flex-1 rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
-            >
+            <Button variant="outline" size="lg" onClick={handlePause} className="flex-1">
               Jeda
-            </button>
-            <button
-              onClick={handleEnd}
-              className="flex-1 rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 dark:bg-neutral-50 dark:text-neutral-900"
-            >
+            </Button>
+            <Button variant="commit" size="lg" onClick={handleEnd} className="flex-1">
               Selesai Sesi
-            </button>
+            </Button>
           </>
         )}
 
         {recordingState === "paused" && (
           <>
-            <button
-              onClick={handleResume}
-              className="flex-1 rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium hover:bg-neutral-100 dark:border-neutral-700 dark:hover:bg-neutral-800"
-            >
+            <Button variant="outline" size="lg" onClick={handleResume} className="flex-1">
               Lanjutkan
-            </button>
-            <button
-              onClick={handleEnd}
-              className="flex-1 rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 dark:bg-neutral-50 dark:text-neutral-900"
-            >
+            </Button>
+            <Button variant="commit" size="lg" onClick={handleEnd} className="flex-1">
               Selesai Sesi
-            </button>
+            </Button>
           </>
         )}
 
         {recordingState === "ended" && (
           <Link
             href={`/session/${sessionId}`}
-            className="flex-1 rounded-md bg-neutral-900 px-4 py-2 text-center text-sm font-medium text-white hover:bg-neutral-700 dark:bg-neutral-50 dark:text-neutral-900"
+            className="flex-1 rounded-2xl bg-neutral-900 px-6 py-3 text-center text-base font-bold text-white hover:bg-neutral-700 dark:bg-neutral-50 dark:text-neutral-900"
           >
             Sesi Selesai — Lihat Rangkuman →
           </Link>
@@ -273,13 +294,9 @@ export function ControlPanel({
               rows={8}
               className="rounded-md border border-neutral-300 p-3 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-800"
             />
-            <button
-              onClick={handleSaveCorrection}
-              disabled={saving}
-              className="w-fit rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900"
-            >
+            <Button variant="commit" size="md" onClick={handleSaveCorrection} disabled={saving} className="w-fit">
               {saving ? "Menyimpan..." : "Simpan Koreksi"}
-            </button>
+            </Button>
           </div>
         )}
       </div>

@@ -3,6 +3,7 @@ import { requireTeacher, getOwnedSession } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { generateSummary } from "@/lib/ai/services";
 import { LLMError } from "@/lib/ai/llm-client";
+import { emitToSession } from "@/lib/socket/server";
 import type { Prisma } from "@/generated/prisma/client";
 
 export async function GET(req: NextRequest) {
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
 
     const summary = await prisma.summary.upsert({
       where: { sessionId },
-      update: { content: result.summary, keyPoints, glossary },
+      update: { content: result.summary, keyPoints, glossary, validatedAt: null },
       create: { sessionId, content: result.summary, keyPoints, glossary },
     });
 
@@ -95,8 +96,11 @@ export async function PATCH(req: NextRequest) {
       ...(content !== undefined && { content }),
       ...(keyPoints !== undefined && { keyPoints }),
       ...(glossary !== undefined && { glossary }),
+      validatedAt: new Date(),
     },
   });
+
+  emitToSession(sessionId, "content:validated", { type: "summary" });
 
   return NextResponse.json({ summary });
 }

@@ -4,8 +4,8 @@
 
 Software pendidikan inklusif berbasis AI. Menangkap suara guru real-time → teks → rangkuman + mind map + quiz interaktif → resume QR code untuk siswa bawa pulang.
 
-**Target user:** Guru + Siswa di daerah 3T
-**Platform:** Web app (projector-friendly, responsive)
+**Target user:** Guru + Siswa SD inklusif (reguler & berkebutuhan khusus digabung dalam satu kelas). Goal utama: tingkatkan literasi membaca & belajar siswa lewat alat bantu ini. Offline-first (Ollama lokal) tetap jadi kekuatan infra — cocok juga dipakai di sekolah daerah 3T, tapi bukan lagi satu-satunya target (per arahan 17/07/2026).
+**Platform:** Web app (projector-friendly, responsive, tampilan proyektor didesain ramah anak SD)
 **AI Backend:** Qwen / LLM sejenis (self-hosted atau API)
 
 ---
@@ -85,20 +85,24 @@ model Teacher {
 }
 
 model Session {
-  id          String       @id @default(cuid())
-  title       String
-  subject     String
-  grade       String
-  teacherId   String
-  teacher     Teacher      @relation(fields: [teacherId], references: [id])
-  transcript  Transcript?
-  summary     Summary?
-  mindMap     MindMap?
-  quizzes     Quiz[]
-  status      SessionStatus @default(IDLE)
-  startedAt   DateTime?
-  endedAt     DateTime?
-  createdAt   DateTime     @default(now())
+  id           String        @id @default(cuid())
+  title        String
+  subject      String
+  theme        String?       // tema pembelajaran, opsional (Module 18)
+  grade        String
+  pptUrl       String?       // lampiran PPT guru, opsional (Module 18)
+  pptName      String?       // nama file asli PPT
+  pptSlideUrls String[]      @default([]) // gambar per-slide hasil konversi LibreOffice, opsional (Module 19)
+  teacherId    String
+  teacher      Teacher       @relation(fields: [teacherId], references: [id])
+  transcript   Transcript?
+  summary      Summary?
+  mindMap      MindMap?
+  quizzes      Quiz[]
+  status       SessionStatus @default(IDLE)
+  startedAt    DateTime?
+  endedAt      DateTime?
+  createdAt    DateTime      @default(now())
 }
 
 model Transcript {
@@ -120,29 +124,36 @@ model TranscriptChunk {
 }
 
 model Summary {
-  id        String   @id @default(cuid())
-  sessionId String   @unique
-  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  content   String   @db.Text
-  keyPoints Json
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  sessionId   String    @unique
+  session     Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  content     String    @db.Text
+  keyPoints   Json
+  glossary    Json      @default("[]") // istilah penting + definisi (Module 6)
+  validatedAt DateTime? // guru sudah "Validasi" — null berarti belum tampil ke siswa (Module 19)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model MindMap {
-  id        String   @id @default(cuid())
-  sessionId String   @unique
-  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  structure Json
-  imageUrl  String?
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  sessionId   String    @unique
+  session     Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  structure   Json
+  imageUrl    String?
+  validatedAt DateTime? // sama seperti Summary.validatedAt (Module 19)
+  createdAt   DateTime  @default(now())
 }
 
 model Quiz {
-  id        String         @id @default(cuid())
-  sessionId String
-  session   Session        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  questions QuizQuestion[]
-  createdAt DateTime       @default(now())
+  id          String         @id @default(cuid())
+  sessionId   String
+  session     Session        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questions   QuizQuestion[]
+  roomCode    String?        @unique // kode 6 digit saat quiz di-launch (Module 9)
+  status      QuizStatus     @default(DRAFT) // state game multiplayer (Module 9-11)
+  validatedAt DateTime?      // guru validasi soal — TERPISAH dari status game (Module 19)
+  createdAt   DateTime       @default(now())
 }
 
 model QuizQuestion {
@@ -153,6 +164,7 @@ model QuizQuestion {
   options       Json
   correctAnswer String
   explanation   String?
+  difficulty    String   @default("sedang") // mudah|sedang|sulit (Module 8)
   order         Int
 }
 
@@ -169,6 +181,13 @@ enum SessionStatus {
   IDLE
   RECORDING
   PROCESSING
+  COMPLETED
+}
+
+enum QuizStatus {
+  DRAFT
+  LOBBY
+  ACTIVE
   COMPLETED
 }
 ```
@@ -303,120 +322,106 @@ enum SessionStatus {
 ### Phase 3 — AI Generation Engine (Week 5-7)
 
 #### Module 5: LLM Integration
-- [ ] LLM client wrapper (`lib/ai/llm-client.ts`)
+- [x] LLM client wrapper (`lib/ai/llm-client.ts`)
   - Support Qwen API (cloud)
   - Support Ollama (local/self-hosted)
   - Configurable endpoint + model
-- [ ] Prompt engineering templates:
+- [x] Prompt engineering templates:
   - Summarize prompt (Bahasa Indonesia context)
   - Mind map structure prompt (output JSON tree)
   - Quiz generation prompt (MCQ + explanation)
-- [ ] Rate limiting + error handling
-- [ ] Streaming response support
+- [x] Rate limiting + error handling
+- [ ] Streaming response support (tidak ditemukan bukti streaming — response LLM ditunggu penuh baru ditampilkan, bukan token-by-token)
 
 #### Module 6: Rangkuman Generator
-- [ ] Trigger: guru klik "Generate Rangkuman" setelah sesi selesai
-- [ ] Input: full transcript text
-- [ ] LLM generate:
+- [x] Trigger: guru klik "Generate Rangkuman" setelah sesi selesai
+- [x] Input: full transcript text
+- [x] LLM generate:
   - Rangkuman singkat (3-5 paragraf)
   - Key points (bullet list)
   - Istilah penting + definisi
-- [ ] Save ke DB (Summary model)
-- [ ] Preview di teacher dashboard
-- [ ] Edit capability (guru bisa revisi sebelum publish)
+- [x] Save ke DB (Summary model)
+- [x] Preview di teacher dashboard
+- [x] Edit capability (guru bisa revisi sebelum publish) — `SummaryPanel.tsx`, tombol "Revisi" → textarea + "Simpan Revisi"
 
 #### Module 7: Mind Map Generator
-- [ ] LLM generate hierarchical structure dari transcript:
-  ```json
-  {
-    "topic": "Fotosintesis",
-    "children": [
-      {
-        "label": "Proses",
-        "children": [
-          { "label": "Reaksi Terang" },
-          { "label": "Siklus Calvin" }
-        ]
-      },
-      {
-        "label": "Komponen",
-        "children": [
-          { "label": "Klorofil" },
-          { "label": "CO2 + H2O" }
-        ]
-      }
-    ]
-  }
-  ```
-- [ ] React Flow / D3.js render interactive mind map
-- [ ] Fitur mind map:
-  - Zoom, pan, drag nodes
-  - Expand/collapse branch
-  - Color-coded per topik
-  - Click node → tampil detail/definisi
-- [ ] Export mind map as image (canvas → PNG)
-- [ ] Save structure ke DB (MindMap model)
+- [x] LLM generate hierarchical structure dari transcript (format sesuai draft di bawah)
+- [x] React Flow render interactive mind map (`InteractiveMindMap.tsx`)
+- [x] Fitur mind map:
+  - Zoom, pan (React Flow `Controls`)
+  - Expand/collapse branch (tombol +/− per node)
+  - Color-coded per topik (palet warna per cabang level-1)
+  - Click node → tampil detail/definisi (panel detail di bawah canvas)
+- [x] Export mind map as image (canvas → PNG, `html-to-image` — tombol "Unduh Gambar"/"Export PNG")
+- [x] Save structure ke DB (MindMap model)
 
 #### Module 8: Quiz Generator
-- [ ] LLM generate soal dari transcript:
+- [x] LLM generate soal dari transcript:
   - Multiple choice (4 opsi)
   - Difficulty level (mudah/sedang/sulit)
   - Penjelasan jawaban benar
-  - 5-15 soal per sesi
-- [ ] Guru preview + edit soal sebelum launch
-- [ ] Save ke DB (Quiz + QuizQuestion model)
+  - 5-15 soal per sesi (input jumlah soal di UI)
+- [x] Guru preview + edit soal sebelum launch ("Revisi Soal")
+- [x] Save ke DB (Quiz + QuizQuestion model)
+
+**Catatan verifikasi Module 5-8 (17/07/2026):** Modul-modul ini ternyata SUDAH diimplementasikan penuh oleh sesi kerja sebelumnya — checklist di atas sempat tidak sinkron dengan kode sungguhan (miss-konsepsi antar sesi Claude Code). Diverifikasi langsung lewat browser hari ini terhadap sesi nyata ("Hewan Peliharaan", IPA Kelas 5B): klik "Generate Rangkuman" → hasil rangkuman + poin kunci + istilah penting tampil dari Ollama lokal (`qwen2.5:7b`) dalam ~15 detik; klik "Generate Mind Map" → React Flow tree interaktif dengan cabang berwarna; klik "Generate Quiz" (10 soal) → soal pilihan ganda + jawaban benar + pembahasan dalam ~25 detik. File yang mengimplementasikan: `src/lib/ai/llm-client.ts`, `src/lib/ai/prompts.ts`, `src/lib/ai/services.ts`, `src/app/api/ai/{summarize,mindmap,quiz}/route.ts`, `src/components/dashboard/{SummaryPanel,QuizPanel}.tsx`, `src/components/mindmap/InteractiveMindMap.tsx`. Satu-satunya sub-task yang belum ada buktinya: streaming response (Module 5) — LLM dipanggil non-streaming (`stream: false` ke Ollama).
 
 ---
 
 ### Phase 4 — Interactive Quiz System (Week 8-9)
 
 #### Module 9: Quiz Lobby & Join
-- [ ] Guru launch quiz → generate room code (6 digit)
-- [ ] Siswa join via URL atau scan QR
-- [ ] Lobby screen (proyektor): tampil siswa yang join real-time
-- [ ] Siswa input nama (no account needed)
-- [ ] WebSocket room management
+- [x] Guru launch quiz → generate room code (`Quiz.roomCode`, status `DRAFT → LOBBY → ACTIVE → COMPLETED`)
+- [x] Siswa join via URL atau scan QR (`/quiz/[sessionId]/join`, QR terpisah dari QR resume)
+- [x] Lobby screen (proyektor): tampil siswa yang join real-time (`QuizLobby.tsx` via event `quiz:lobby:update`)
+- [x] Siswa input nama (no account needed) (`QuizJoinForm.tsx`)
+- [x] WebSocket room management (`src/lib/socket/server.ts`)
 
 #### Module 10: Quiz Gameplay
-- [ ] Quizizz-style flow:
-  - Soal tampil di proyektor + device siswa
-  - Timer per soal (configurable: 15/30/60 detik)
-  - Siswa jawab di device masing-masing
-  - Real-time progress bar di proyektor
-  - Streak bonus + speed bonus scoring
-- [ ] Animasi transisi antar soal
-- [ ] Sound effects (optional, toggle)
-- [ ] Leaderboard update setiap soal selesai
+- [x] Quizizz-style flow:
+  - Soal tampil di proyektor + device siswa (`QuizQuestion.tsx` varian `projector`/`player`)
+  - Timer per soal (configurable: 15/30/60 detik, default tersimpan di `DisplayPreferences`)
+  - Siswa jawab di device masing-masing (`QuizPlayerGame.tsx`)
+  - Real-time progress bar di proyektor ("X dari Y siswa sudah menjawab")
+  - Streak bonus + speed bonus scoring (`src/lib/socket/server.ts`: `basePoints` dari rasio waktu tersisa + `streakBonus` maks 5 soal beruntun)
+- [x] Animasi transisi antar soal (Framer Motion + class `quiz-question-enter`)
+- [x] Sound effects (optional, toggle) — ditemukan di `QuizPlayerGame.tsx`/`QuizGameControl.tsx`, belum diverifikasi manual bunyinya
+- [x] Leaderboard update setiap soal selesai (event `quiz:leaderboard` setelah tiap `quiz:reveal`)
+- [x] Auto-advance per timer, TANPA tombol manual "soal selanjutnya" — perbaikan dari Feedback 10/07/2026 sudah masuk: proyektor (`QuizProjectorGame.tsx`) murni reaktif terhadap event socket dari server, guru cuma klik "Mulai" sekali di awal
 
 #### Module 11: Quiz Results
-- [ ] Final leaderboard (top 3 podium style)
-- [ ] Per-soal breakdown: berapa persen jawab benar
-- [ ] Review soal + pembahasan
-- [ ] Save attempts ke DB (QuizAttempt model)
+- [x] Final leaderboard (top 3 podium style) — `QuizResults.tsx`, medali + animasi tinggi podium
+- [x] Per-soal breakdown: berapa persen jawab benar
+- [x] Review soal + pembahasan
+- [x] Save attempts ke DB (QuizAttempt model) — `prisma.quizAttempt.createMany` saat quiz selesai
+
+**Catatan verifikasi Module 9-11 (17/07/2026):** Sama seperti Module 5-8, ternyata sudah diimplementasikan penuh tapi checklist belum diupdate. Diverifikasi lewat kode (`src/lib/socket/server.ts`, `src/components/quiz/*`) — belum dites end-to-end multi-device (butuh 2+ browser/HP beneran join bareng), tapi alur guru-gated start ("Quiz belum dibuka oleh guru" muncul di `/quiz/[sessionId]` sebelum guru klik Launch) sudah dikonfirmasi manual hari ini. Ini juga menjawab beberapa item Feedback 10/07/2026 di Module 17 — lihat catatan di bawah.
 
 ---
 
 ### Phase 5 — Resume & QR Code (Week 10-11)
 
 #### Module 12: Resume Page
-- [ ] `/r/[sessionId]` — halaman resume pembelajaran
-- [ ] Konten resume:
+- [x] `/r/[sessionId]` — halaman resume pembelajaran
+- [x] Konten resume:
   - Info sesi (mata pelajaran, topik, tanggal, guru)
   - Rangkuman lengkap
-  - Mind map interaktif (bukan cuma gambar statis)
+  - Mind map interaktif (React Flow, bukan gambar statis — bisa zoom/pan/expand di HP)
   - Daftar istilah penting
-  - Soal + jawaban + pembahasan
-  - Visual/infografis (generated atau template)
-- [ ] Mobile-friendly (siswa buka di HP)
-- [ ] Offline support (PWA / save as PDF option)
-- [ ] Share button (WhatsApp, copy link)
+  - Soal + jawaban + pembahasan (`QuizReview.tsx` — HANYA tampil kalau quiz sudah `status: COMPLETED`, by design)
+  - Visual/infografis: belum ada infografis generated, cuma card layout + emoji
+- [x] Mobile-friendly (siswa buka di HP) — card max-width ~420px terverifikasi
+- [x] Save as PDF ("Simpan PDF" button) — belum diverifikasi PWA offline caching-nya
+- [x] Share button (WhatsApp, copy link) — `ResumeActions.tsx`
 
 #### Module 13: QR Code System
-- [ ] Generate QR code per session → link ke resume page
-- [ ] Tampil QR di proyektor setelah sesi selesai
-- [ ] QR besar, scannable dari jarak jauh
-- [ ] Guru bisa print QR (PDF export)
-- [ ] QR include session metadata
+- [x] Generate QR code per session → link ke resume page (`qrcode` npm package, `QRCode.toDataURL`)
+- [x] Tampil QR di proyektor setelah sesi selesai — DAN QR quiz tampil BERSEBELAHAN dengan label jelas ("Rangkuman & Mind Map" vs "Ikuti Quiz") di `LiveDisplay.tsx`, ini juga menjawab item Feedback 10/07/2026
+- [x] QR besar, scannable dari jarak jauh (400px)
+- [x] Guru bisa print QR (PDF export) — `PrintQRButton.tsx`
+- [ ] QR include session metadata — QR cuma encode URL polos (`{appUrl}/r/{sessionId}`), tidak ada metadata sesi ter-embed di dalam QR itu sendiri (metadata-nya dibaca dari DB pas halaman resume dibuka, bukan dari QR-nya)
+
+**Catatan verifikasi Module 12-13 (17/07/2026):** Diverifikasi langsung via scan-equivalent (buka `/r/[sessionId]` di browser) — mind map render+download PNG jalan, PPT lampiran guru bisa diunduh, tombol share WhatsApp/copy link/simpan PDF ada. File kunci: `src/app/(resume)/r/[sessionId]/page.tsx`, `src/components/resume/{ResumeView,ResumeActions,QuizReview,PrintQRButton,QRCodeGenerator}.tsx`, `src/app/(display)/live/[sessionId]/page.tsx` (generate 2 QR sekaligus).
 
 ---
 
@@ -483,6 +488,13 @@ OPENROUTER_MODEL="qwen/qwen-2.5-72b-instruct"
 # "whisper" = server-side Whisper (lebih akurat, butuh resource)
 STT_PROVIDER="browser"
 WHISPER_MODEL="large-v3"
+
+# === PPT SLIDE CONVERSION (Module 19, opsional) ===
+# Override path binary kalau soffice/pdftoppm tidak ada di PATH default.
+# Wajib LibreOffice + poppler-utils terpasang di server supaya PPT tampil di proyektor —
+# kalau tidak ada, upload PPT tetap sukses (lampiran unduh jalan), cuma tanpa slide di layar.
+LIBREOFFICE_PATH="soffice"
+PDFTOPPM_PATH="pdftoppm"
 
 # === APP CONFIG ===
 APP_URL="http://localhost:3000"
@@ -1012,12 +1024,61 @@ Transkrip:
 
 Belum dikerjakan — daftar kerja buat sesi besok, dipecah dari feedback mentah di atas jadi item konkret. Catatan diagnosis awal (belum diverifikasi, baru hasil baca kode cepat) disertakan supaya besok tidak mulai dari nol.
 
-- [ ] **Mind map tidak muncul/tidak bisa didownload di HP siswa.** Diagnosis awal: `ResumeView` (`src/components/resume/ResumeView.tsx`) sudah render `InteractiveMindMap` kalau `mindMap` ada, dan render fallback "Mind map belum tersedia" kalau `null` — jadi kemungkinan besar penyebabnya guru belum klik generate mind map di halaman `/session/[id]` sebelum QR dibagikan ke siswa (bukan mindmap-nya gagal render, tapi memang belum pernah di-generate untuk sesi itu), TAPI perlu diverifikasi langsung besok dengan sesi baru + generate mind map dulu baru scan QR. Kalau ternyata sudah di-generate tapi tetap tidak muncul di HP, berarti bug rendering React Flow di mobile browser (perlu dicek console error di HP). Untuk "tidak bisa didownload" — cek `ResumeActions`/export PDF (`jsPDF`), kemungkinan trigger download tidak jalan di mobile Chrome (behavior download blob/file beda di mobile vs desktop).
-- [ ] **Quiz gameplay: hapus tombol manual "soal selanjutnya", ganti auto-advance per timer.** Guru cukup 1x klik "Mulai" di awal; tiap soal otomatis lanjut begitu waktu habis (bukan nunggu klik manual tiap soal). Perlu ubah `QuizGameplay`/komponen terkait + event socket yang relevan (lihat Module 10).
-- [ ] **Tampilan QR kedua (di layar proyektor) — QR rangkuman+mindmap dan QR quiz ditampilkan BERSEBELAHAN**, bukan terpisah/bergantian, biar siswa tidak bingung QR mana yang mana. Kemungkinan di `/live/[sessionId]` dan/atau `/quiz/[sessionId]` (`src/app/(display)/...`), perlu layout 2 kolom dengan label jelas per QR.
-- [ ] **Quiz start dikontrol penuh oleh guru** — siswa yang sudah join lobby harus nunggu, quiz baru mulai serentak begitu guru klik "Mulai" di perangkatnya (bukan mulai sendiri-sendiri per siswa). Setelah waktu habis sesuai durasi yang diset guru, quiz otomatis selesai dan **skor + ranking ditampilkan di layar** (proyektor) supaya semua siswa bisa lihat siapa benar dan peringkatnya. Ini kemungkinan sudah sebagian ada (lihat Module 9-11 quiz lobby/gameplay/results) — perlu diaudit ulang apakah start-nya benar-benar guru-gated atau masih bisa mulai sendiri per klien.
-- [ ] **UI onboarding buat guru awam** — tombol-tombol penting (Mulai Merekam, Generate, Mulai Quiz, dst) dikasih warna aksen yang beda/menonjol dari tombol sekunder, supaya guru yang belum familiar teknologi tidak bingung harus klik yang mana duluan. Bisa juga pertimbangkan tooltip/label penuntun di first-time use.
-- [ ] **Setelah semua di atas selesai**: update checklist ini dan tulis catatan implementasi lengkap (pola yang sama seperti Module 1-16), lalu jalan `npm run build` + `npm run lint`, test manual ulang end-to-end (guru generate → siswa scan QR → lihat rangkuman/mindmap/quiz → quiz jalan dikontrol guru → skor tampil).
-- [ ] **Mind Mapping Realtime**: update proses generate mind mapping agar pada layar yang ditampilkan ke siswa juga bisa melihat proses mindmapping dibuat, pembuatan dibuat dalam animasi smooth gerakan dari cabang inti ke cabang-cabaang anak lainnya
+- [x] **Mind map tidak muncul/tidak bisa didownload di HP siswa.** **FIXED (diverifikasi 17/07/2026)** — `/r/[sessionId]` menampilkan `InteractiveMindMap` React Flow penuh dengan tombol "Unduh Gambar" (PNG via `html-to-image`), diuji langsung di browser terhadap sesi nyata dengan mind map ter-generate. Root cause aslinya kemungkinan besar memang guru belum generate mind map sebelum bagi QR, bukan bug rendering.
+- [x] **Quiz gameplay: hapus tombol manual "soal selanjutnya", ganti auto-advance per timer.** **FIXED** — `QuizProjectorGame.tsx` dan `QuizPlayerGame.tsx` murni reaktif terhadap event socket (`quiz:question`, `quiz:reveal`, `quiz:finished`) yang didorong server berdasarkan timer, tidak ada tombol manual next di kode.
+- [x] **Tampilan QR kedua (di layar proyektor) — QR rangkuman+mindmap dan QR quiz ditampilkan BERSEBELAHAN.** **FIXED** — `LiveDisplay.tsx` render dua `QRCodeCard` dalam `flex flex-wrap gap-12`, label "Rangkuman & Mind Map" vs "Ikuti Quiz", QR quiz cuma muncul kalau ada quiz berstatus LOBBY/ACTIVE.
+- [x] **Quiz start dikontrol penuh oleh guru.** **FIXED** — state machine `Quiz.status` (DRAFT → LOBBY → ACTIVE → COMPLETED) di server, halaman `/quiz/[sessionId]` menampilkan "Quiz belum dibuka oleh guru." selama belum di-launch (diverifikasi manual). Skor + ranking podium tampil di proyektor saat status COMPLETED (`QuizResults.tsx`).
+- [x] **UI onboarding buat guru awam** — **selesai 17/07/2026, lihat Module 19.**
+- [ ] **Mind Mapping Realtime**: BELUM diimplementasikan — hasil test manual hari ini, klik "Generate Mind Map" cuma menampilkan loading state generik ("Membuat mind map...") lalu langsung hasil akhir, tidak ada animasi bertahap dari node akar ke cabang anak yang terlihat siswa di proyektor.
 
-**Skor guru hari ini: 7/10.** Root cause sebagian besar feedback: fitur-fitur yang selama ini cuma diuji lewat script (`test-*.mjs`) atau asumsi desain di taskplan, belum pernah dipakai end-to-end oleh user asli lewat UI sungguhan sampai hari ini — jadi baru ketauan sekarang. Ini konsisten dengan pola temuan modul-modul sebelumnya (bug `server.ts` env loading, bug mind map topic) yang juga baru ketauan pas testing nyata, bukan pas development.
+**Update verifikasi 17/07/2026:** 4 dari 6 item feedback 10/07 ternyata SUDAH diperbaiki oleh sesi kerja sebelumnya, tapi checklist ini tidak diupdate saat itu (root cause miss-konsepsi yang sama seperti Module 5-13 di atas — kerjaan nyata mendahului dokumentasi taskplan). Sisa 2 item asli (`UI onboarding`, `Mind Mapping Realtime`) masih perlu dikerjakan. Belum jalan `npm run build`/`npm run lint` ulang di sesi ini — cuma verifikasi manual via browser terhadap dev server yang sudah jalan.
+
+**Skor guru 10/07/2026: 7/10.** Root cause sebagian besar feedback saat itu: fitur-fitur yang cuma diuji lewat script (`test-*.mjs`) atau asumsi desain di taskplan, belum pernah dipakai end-to-end lewat UI sungguhan. Per 17/07/2026, mayoritas item feedback itu sudah dikonfirmasi selesai lewat testing manual di browser.
+
+---
+
+## Feedback 17/07/2026 — Reposisi produk ke SD Inklusif
+
+User menegaskan target akhir produk ini adalah **siswa SD inklusif** (reguler + berkebutuhan khusus digabung), goal utama: tingkatkan literasi membaca & belajar. Permintaan konkret: redesain visual layar proyektor biar ramah anak, reposisi live caption jadi gaya subtitle + animasi ketik, background animasi jaringan semantik, fitur hapus sesi, dan fitur opsional upload PPT guru saat bikin sesi baru (dengan alur konfirmasi dulu), data sesi harus terurut per kelas.
+
+### Module 18: Redesain UI Anak SD + Fitur Sesi (selesai 17/07/2026)
+
+- [x] Tambah field `theme`, `pptUrl`, `pptName` (nullable) ke model `Session` — non-breaking, tidak perlu backfill.
+- [x] Fitur hapus sesi di dashboard (backend `DELETE /api/session/[id]` sudah ada sejak Module 2, tinggal UI-nya).
+- [x] Sesi dashboard dikelompokkan & diurutkan per kelas (helper `src/lib/grade-sort.ts`, natural sort angka+rombel).
+- [x] Wizard sesi baru: konfirmasi "Mulai sesi belajar baru?" → form (mata pelajaran, tema, judul, kelas via select 1-6 + rombel opsional, PPT opsional).
+- [x] Upload PPT guru (opsional, disimpan sebagai lampiran saja — tidak diparse/diekstrak, sesuai keputusan user) via endpoint baru `src/app/api/session/[id]/ppt/route.ts`, disimpan lokal di `public/uploads/ppt/` (di-gitignore).
+- [x] Link unduh PPT ditampilkan di halaman sesi guru dan halaman resume siswa (`ResumeView.tsx`).
+- [x] Komponen baru `ProjectorBackground.tsx` (background jaringan semantik animasi CSS, node+garis, PRNG deterministik biar tidak hydration-mismatch) dan `TypewriterText.tsx` (animasi ketik untuk teks interim STT yang sedang berjalan).
+- [x] `LiveCaption.tsx` direposisi dari center-screen jadi gaya subtitle (bagian bawah layar), interim line pakai efek ketik, final lines lama tidak diketik ulang (cuma fade, biar tidak mengalihkan fokus berulang).
+- [x] Layar proyektor (`/live`, `/quiz` — termasuk lobby, leaderboard, results, loading states) di-reskin dari `bg-neutral-950` abu-abu polos jadi `bg-indigo-950` + aksen warna cerah (sky/amber/orange/emerald/pink) + `ProjectorBackground`. Warna semantic (hijau=benar, merah=urgent) sengaja **tidak diubah**. Varian quiz untuk HP siswa (`player`) sengaja tidak disentuh — sudah ceria dari iterasi sebelumnya, di luar keluhan user kali ini.
+
+**Catatan implementasi:**
+- `grade` tetap `String` freeform (bukan enum) — wizard cuma menyediakan `<select>` 1-6 + input rombel opsional di level UI supaya data tetap bersih untuk keperluan sort, tanpa migrasi skema yang berisiko ke banyak consumer (`SessionList`, `ClassBreakdown`, live/quiz/resume pages).
+- Upload PPT pakai `request.formData()` native Next.js Route Handler — **tidak nambah dependency baru** (custom `server.ts` pakai raw `http.createServer` jadi tidak ada body-size cap tambahan dari Next).
+- `ProjectorBackground` posisi node dihasilkan dari PRNG seeded (`mulberry32`), bukan `Math.random()`, supaya render server & client identik (hindari hydration mismatch) — beda pendekatan dari pola `localStorage`-in-`useEffect` yang dipakai di Module 4, karena di sini bisa dibuat deterministik dari awal tanpa perlu nunggu mount.
+- Verifikasi: `npx prisma db push` ✅, `npm run build` ✅, `npm run lint` ✅, manual end-to-end via browser (buat sesi + PPT, hapus sesi, grouping kelas, live caption subtitle+ketik+background, quiz proyektor re-skin).
+
+---
+
+## Feedback 17/07/2026 (lanjutan) — Validasi Guru, PPT di Proyektor, Hasil Belajar Tanpa QR
+
+Permintaan lanjutan setelah Module 18: (1) tombol aksi penting di panel guru harus menonjol jelas, (2) istilah "Revisi" diganti "Validasi" — guru harus konfirmasi dulu hasil AI benar sebelum tampil ke siswa, baru diberi opsi revisi kalau salah, (3) PPT yang diupload guru **direncanakan ulang** dari "cuma lampiran" (keputusan Module 18) jadi ditampilkan sebagai gambar per-slide di proyektor bersamaan dengan subtitle (subtitle di atas, PPT di bawah), (4) karena siswa SD sasaran produk belum boleh bawa HP, rangkuman/mind map/soal **tidak lagi lewat scan QR di kelas** — begitu guru validasi, konten langsung muncul di proyektor (transkrip terakhir geser ke kiri, panel kanan isi rangkuman/mindmap/soal begitu siap), QR dipertahankan cuma sebagai kanal sekunder (guru share ke orang tua nanti, ukuran diperkecil jadi pojok layar), (5) rangkuman+mindmap+soal masing-masing bisa dicetak PDF terpisah sebagai media pembelajaran fisik.
+
+### Module 19: Validasi Guru + PPT Proyektor + Hasil Belajar In-Class (selesai 17/07/2026)
+
+- [x] Skema: `Summary.validatedAt`, `MindMap.validatedAt`, `Quiz.validatedAt` (terpisah dari `Quiz.status` yang dipakai state game multiplayer), `Session.pptSlideUrls String[]`.
+- [x] Komponen `Button` bersama (`src/components/ui/Button.tsx`, varian primary/confirm/outline/commit/danger/ghost) dipasang di `SummaryPanel`, `MindMapViewer`, `QuizPanel`, `ControlPanel` — aksi utama (Validasi=biru, Generate=hijau, Simpan/Selesai=hitam solid) sekarang jelas beda dari aksi sekunder (outline).
+- [x] Alur Validasi: klik "✅ Validasi" → banner konfirmasi "Apakah ini sudah benar?" → **Ya, Sudah Benar** (langsung publish) atau **Belum, Perlu Diperbaiki** (buka form edit yang sudah ada sejak Module 6/8, simpan = otomatis tervalidasi juga). Mind Map (tidak punya form edit) cuma punya tombol validasi langsung tanpa banner, karena satu-satunya jalur koreksi memang "Generate Ulang". Regenerate konten yang sudah tervalidasi otomatis reset `validatedAt` ke `null` (harus divalidasi ulang).
+- [x] Endpoint baru `POST /api/ai/{summarize,mindmap}/validate` (by `sessionId`) dan `POST /api/ai/quiz/validate` (by `quizId`, konsisten dengan PATCH quiz yang sudah keyed situ).
+- [x] Cetak PDF terpisah per jenis konten (`jsPDF`, pola sama seperti `PrintQRButton.tsx` yang sudah ada): "Cetak Rangkuman" (teks), "Cetak PDF" mind map (reuse `html-to-image` yang sudah dipakai buat Export PNG, lalu di-embed ke PDF), "Cetak Soal" (soal+opsi+jawaban benar+pembahasan, auto page-break).
+- [x] Konversi PPT → gambar per-slide: `src/lib/ppt/convert.ts` (`soffice --headless --convert-to pdf` lalu `pdftoppm -png`), dipanggil dari `POST /api/session/[id]/ppt` setelah file tersimpan. Kalau binary tidak ada di PATH, gagal dengan aman (upload lampiran tetap sukses, cuma tanpa slide di proyektor) — pesan ramah ditampilkan ke guru via `slidesError` di response.
+- [x] Layar proyektor saat masih mengajar: kalau ada `pptSlideUrls`, layar terbelah subtitle di atas (42%) + slide PPT di bawah (58%, komponen baru `PptSlideViewer.tsx`); kalau tidak ada PPT, perilaku persis seperti sebelumnya (caption full-screen, tidak ada regresi). Guru navigasi slide dari Control Panel (Prev/Next), sinkron ke proyektor via event socket baru `ppt:slide`.
+- [x] Layar proyektor setelah sesi selesai: bukan lagi layar QR penuh — kiri (38%) transkrip terakhir + info sesi, kanan (62%, scrollable) komponen baru `SessionResultsPanel.tsx` menumpuk 3 kartu (Rangkuman/Mind Map/Soal), tiap kartu tampil loading ramah anak sampai `validatedAt` terisi lalu otomatis ganti jadi konten asli — reuse langsung `InteractiveMindMap` dan `QuizReview` (dari halaman resume), tidak dibuat ulang. QR resume+quiz dipertahankan tapi diperkecil jadi kartu compact di pojok kanan-bawah (`QRCodeCard` dapat varian baru `compact`).
+- [x] Live sync tanpa refresh manual: event socket `content:validated` (dan `quiz:launched`) di-broadcast ke proyektor begitu guru validasi/launch, proyektor cuma `router.refresh()` buat re-fetch data server terbaru (reuse pola `quiz:launched` yang sudah ada sebelumnya).
+
+**Temuan arsitektur penting (bukan bug baru dari modul ini, tapi baru ketahuan sekarang):** `getSocketServer()` yang dipanggil LANGSUNG dari dalam Next.js Route Handler (`src/app/api/**/route.ts`) selalu gagal dengan error "Socket.IO server belum diinisialisasi", walau `initSocketServer()` sudah jalan di `server.ts` saat startup. Root cause: custom server (`server.ts`) meng-import `src/lib/socket/server.ts` langsung lewat Node ESM (`node server.ts` menjalankan TS mentah), sedangkan Route Handler App Router dikompilasi & dijalankan lewat module graph Turbopack yang terpisah — dua "instance" modul berbeda, jadi variabel `io` yang di-set di satu sisi tidak terlihat di sisi lain. Ini artinya **broadcast socket dari route handler API selama ini selalu gagal diam-diam** — termasuk `quiz:launched` di `/api/quiz/launch/route.ts` yang sudah ada sejak Module 9 (tidak ketahuan sebelumnya karena response HTTP-nya tetap sukses, room code tetap muncul di tab guru sendiri lewat response langsung, bukan lewat broadcast). **Perbaikan**: pola socket dari client (`socket.emit(...)`) → `socket.on(...)` handler di `server.ts` yang broadcast ulang ke room — persis pola `display:mode`/`ppt:slide` yang sudah terbukti jalan (koneksi WebSocket nempel langsung ke `httpServer` mentah, bypass Turbopack sepenuhnya). Diterapkan di kedua tempat (`content:validated` baru dan `quiz:launched` yang diperbaiki). Route handler tetap punya `emitToSession()` (try/catch, log warning kalau gagal) sebagai fallback best-effort yang tidak pernah menggagalkan aksi utama (simpan ke DB) — tapi broadcast yang REAL datang dari client-emit, bukan dari situ.
+- **Diverifikasi 2 tab browser sekaligus**: regenerate+validasi mind map di tab guru → tab proyektor (tanpa reload manual) otomatis menampilkan mind map baru dalam <1 detik. Dikonfirmasi juga lewat log server (`GET /live/[sessionId]` muncul otomatis tepat setelah `POST .../validate`).
+- **Belum bisa diverifikasi visual**: konversi PPT ke gambar (LibreOffice `soffice` + poppler `pdftoppm` tidak ditemukan di PATH mesin dev ini — `where soffice`/`where pdftoppm` kosong). Kode sudah defensif (gagal aman, tidak crash upload), tapi split-layout subtitle+PPT di proyektor baru bisa dites visual setelah LibreOffice+poppler terpasang. Perlu diinstall dulu di sesi berikutnya (dan nanti masuk Dockerfile produksi: `apt-get install -y libreoffice poppler-utils`).
+- **Di luar scope sesi ini** (item terakhir Module 17 yang masih pending): animasi realtime pembuatan mind map (cabang tumbuh satu-satu, terlihat siswa saat proses generate). Mind map di `SessionResultsPanel` langsung render statis begitu tervalidasi.
+- Verifikasi: `npx prisma db push` ✅, `npm run build` ✅ (2x, setelah initial pass dan setelah perbaikan socket), `npm run lint` ✅, manual end-to-end browser dua-tab (session page guru + live projector) untuk Rangkuman/Mind Map/Soal — generate → validasi (banner konfirmasi & jalur revisi keduanya dites) → live update di proyektor tanpa reload. Cetak PDF dites tanpa error console. **Catatan operasional**: `npm run build` dan `npm run dev` berbagi folder `.next` yang sama — menjalankan build production sementara dev server jalan akan mencemari `.next` dev server (bikin 500 error ENOENT), harus `rm -rf .next` + restart dev server setelah build kalau mau lanjut testing manual.

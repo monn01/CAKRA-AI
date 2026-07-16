@@ -22,20 +22,24 @@ model Teacher {
 }
 
 model Session {
-  id         String        @id @default(cuid())
-  title      String
-  subject    String
-  grade      String
-  teacherId  String
-  teacher    Teacher       @relation(fields: [teacherId], references: [id])
-  transcript Transcript?
-  summary    Summary?
-  mindMap    MindMap?
-  quizzes    Quiz[]
-  status     SessionStatus @default(IDLE)
-  startedAt  DateTime?
-  endedAt    DateTime?
-  createdAt  DateTime      @default(now())
+  id           String        @id @default(cuid())
+  title        String
+  subject      String
+  theme        String?
+  grade        String
+  pptUrl       String?
+  pptName      String?
+  pptSlideUrls String[]      @default([])
+  teacherId    String
+  teacher      Teacher       @relation(fields: [teacherId], references: [id])
+  transcript   Transcript?
+  summary      Summary?
+  mindMap      MindMap?
+  quizzes      Quiz[]
+  status       SessionStatus @default(IDLE)
+  startedAt    DateTime?
+  endedAt      DateTime?
+  createdAt    DateTime      @default(now())
 }
 
 model Transcript {
@@ -57,33 +61,36 @@ model TranscriptChunk {
 }
 
 model Summary {
-  id        String   @id @default(cuid())
-  sessionId String   @unique
-  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  content   String   @db.Text
-  keyPoints Json
-  glossary  Json     @default("[]")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String    @id @default(cuid())
+  sessionId   String    @unique
+  session     Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  content     String    @db.Text
+  keyPoints   Json
+  glossary    Json      @default("[]")
+  validatedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model MindMap {
-  id        String   @id @default(cuid())
-  sessionId String   @unique
-  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  structure Json
-  imageUrl  String?
-  createdAt DateTime @default(now())
+  id          String    @id @default(cuid())
+  sessionId   String    @unique
+  session     Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  structure   Json
+  imageUrl    String?
+  validatedAt DateTime?
+  createdAt   DateTime  @default(now())
 }
 
 model Quiz {
-  id        String         @id @default(cuid())
-  sessionId String
-  session   Session        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  questions QuizQuestion[]
-  roomCode  String?        @unique
-  status    QuizStatus     @default(DRAFT)
-  createdAt DateTime       @default(now())
+  id          String         @id @default(cuid())
+  sessionId   String
+  session     Session        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questions   QuizQuestion[]
+  roomCode    String?        @unique
+  status      QuizStatus     @default(DRAFT)
+  validatedAt DateTime?
+  createdAt   DateTime       @default(now())
 }
 
 model QuizQuestion {

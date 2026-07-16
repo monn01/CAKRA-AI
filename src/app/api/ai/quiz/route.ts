@@ -3,6 +3,7 @@ import { requireTeacher, getOwnedSession, getOwnedQuiz } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
 import { generateQuiz, type QuizDifficulty } from "@/lib/ai/services";
 import { LLMError } from "@/lib/ai/llm-client";
+import { emitToSession } from "@/lib/socket/server";
 import type { Prisma } from "@/generated/prisma/client";
 
 const VALID_DIFFICULTIES: QuizDifficulty[] = ["mudah", "sedang", "sulit"];
@@ -114,6 +115,7 @@ export async function PATCH(req: NextRequest) {
     await tx.quiz.update({
       where: { id: quizId },
       data: {
+        validatedAt: new Date(),
         questions: {
           create: questions.map(
             (
@@ -142,6 +144,8 @@ export async function PATCH(req: NextRequest) {
       include: { questions: { orderBy: { order: "asc" } } },
     });
   });
+
+  emitToSession(owned.sessionId, "content:validated", { type: "quiz" });
 
   return NextResponse.json({ quiz });
 }

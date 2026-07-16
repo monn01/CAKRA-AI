@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import QRCode from "qrcode";
 import { prisma } from "@/lib/prisma";
 import { LiveDisplay } from "@/components/live/LiveDisplay";
+import type { MindMapStructure } from "@/components/mindmap/InteractiveMindMap";
 
 export default async function LiveDisplayPage({
   params,
@@ -12,7 +13,12 @@ export default async function LiveDisplayPage({
 
   const session = await prisma.session.findUnique({
     where: { id: sessionId },
-    include: { transcript: true },
+    include: {
+      transcript: true,
+      summary: true,
+      mindMap: true,
+      quizzes: { orderBy: { createdAt: "desc" }, take: 1, include: { questions: { orderBy: { order: "asc" } } } },
+    },
   });
   if (!session) notFound();
 
@@ -33,6 +39,34 @@ export default async function LiveDisplayPage({
     year: "numeric",
   });
 
+  const summary = session.summary
+    ? {
+        content: session.summary.content,
+        keyPoints: (session.summary.keyPoints as string[] | null) ?? [],
+        validatedAt: session.summary.validatedAt?.toISOString() ?? null,
+      }
+    : null;
+
+  const mindMap = session.mindMap
+    ? {
+        structure: session.mindMap.structure as unknown as MindMapStructure,
+        validatedAt: session.mindMap.validatedAt?.toISOString() ?? null,
+      }
+    : null;
+
+  const latestQuiz = session.quizzes[0];
+  const quiz = latestQuiz
+    ? {
+        questions: latestQuiz.questions.map((q) => ({
+          question: q.question,
+          options: (q.options as string[] | null) ?? [],
+          correctAnswer: q.correctAnswer,
+          explanation: q.explanation,
+        })),
+        validatedAt: latestQuiz.validatedAt?.toISOString() ?? null,
+      }
+    : null;
+
   return (
     <LiveDisplay
       sessionId={sessionId}
@@ -44,6 +78,10 @@ export default async function LiveDisplayPage({
       dateLabel={dateLabel}
       qrDataUrl={qrDataUrl}
       quizQrDataUrl={quizQrDataUrl}
+      pptSlideUrls={session.pptSlideUrls}
+      summary={summary}
+      mindMap={mindMap}
+      quiz={quiz}
     />
   );
 }

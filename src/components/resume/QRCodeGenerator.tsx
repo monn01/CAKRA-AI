@@ -4,15 +4,28 @@ export function QRCodeCard({
   helperText,
   alt,
   dark,
+  compact,
 }: {
   qrDataUrl: string;
   heading: string;
   helperText: string;
   alt: string;
   dark?: boolean;
+  compact?: boolean;
 }) {
   const textClass = dark ? "text-white" : "text-neutral-900";
   const mutedClass = dark ? "text-neutral-400" : "text-neutral-500";
+
+  if (compact) {
+    return (
+      <div className="flex flex-col items-center gap-1 rounded-xl bg-black/40 p-3 text-center backdrop-blur">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={qrDataUrl} alt={alt} className="h-20 w-20 rounded-md bg-white p-1.5" />
+        <p className={`text-xs font-semibold ${textClass}`}>{heading}</p>
+        <p className={`text-[10px] ${mutedClass}`}>{helperText}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col items-center gap-3 text-center">

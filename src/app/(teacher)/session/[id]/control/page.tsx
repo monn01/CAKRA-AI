@@ -36,6 +36,7 @@ export default async function SessionControlPage({
         sessionId={teachingSession.id}
         initialFullText={teachingSession.transcript?.fullText ?? ""}
         initialStatus={teachingSession.status}
+        pptSlideCount={teachingSession.pptSlideUrls.length}
       />
     </main>
   );

@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { jsPDF } from "jspdf";
+import { Button } from "@/components/ui/Button";
+import { getSocketClient } from "@/lib/socket/client";
 
 type GlossaryItem = { term: string; definition: string };
 
@@ -9,21 +12,30 @@ type SummaryData = {
   content: string;
   keyPoints: string[];
   glossary: GlossaryItem[];
+  validatedAt?: string | null;
 };
 
 export function SummaryPanel({
   sessionId,
   hasTranscript,
   initialSummary,
+  title,
+  subject,
+  grade,
 }: {
   sessionId: string;
   hasTranscript: boolean;
   initialSummary: SummaryData | null;
+  title: string;
+  subject: string;
+  grade: string;
 }) {
   const [summary, setSummary] = useState<SummaryData | null>(initialSummary);
   const [generating, setGenerating] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [validating, setValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [draftContent, setDraftContent] = useState("");
@@ -33,6 +45,7 @@ export function SummaryPanel({
   async function handleGenerate() {
     setGenerating(true);
     setError(null);
+    setConfirming(false);
 
     const res = await fetch("/api/ai/summarize", {
       method: "POST",
@@ -56,6 +69,7 @@ export function SummaryPanel({
     setDraftContent(summary.content);
     setDraftKeyPoints(summary.keyPoints.join("\n"));
     setDraftGlossary(summary.glossary.length > 0 ? summary.glossary : [{ term: "", definition: "" }]);
+    setConfirming(false);
     setEditing(true);
   }
 
@@ -85,6 +99,82 @@ export function SummaryPanel({
 
     setSummary(data.summary);
     setEditing(false);
+    getSocketClient().emit("content:validated", { sessionId, type: "summary" });
+  }
+
+  async function handleValidate() {
+    setValidating(true);
+    setError(null);
+
+    const res = await fetch("/api/ai/summarize/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    });
+    const data = await res.json();
+
+    setValidating(false);
+
+    if (!res.ok) {
+      setError(data.error || "Gagal memvalidasi rangkuman");
+      return;
+    }
+
+    setSummary(data.summary);
+    setConfirming(false);
+    getSocketClient().emit("content:validated", { sessionId, type: "summary" });
+  }
+
+  function handlePrint() {
+    if (!summary) return;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 18;
+    let y = 22;
+
+    doc.setFontSize(16);
+    doc.text(title, margin, y);
+    y += 7;
+    doc.setFontSize(10);
+    doc.setTextColor(120);
+    doc.text(`${subject} · Kelas ${grade}`, margin, y);
+    doc.setTextColor(0);
+    y += 10;
+
+    doc.setFontSize(12);
+    doc.text("Rangkuman", margin, y);
+    y += 7;
+    doc.setFontSize(10);
+    const contentLines = doc.splitTextToSize(summary.content, pageWidth - margin * 2);
+    doc.text(contentLines, margin, y);
+    y += contentLines.length * 5 + 8;
+
+    if (summary.keyPoints.length > 0) {
+      doc.setFontSize(12);
+      doc.text("Poin Kunci", margin, y);
+      y += 7;
+      doc.setFontSize(10);
+      for (const point of summary.keyPoints) {
+        const lines = doc.splitTextToSize(`• ${point}`, pageWidth - margin * 2);
+        doc.text(lines, margin, y);
+        y += lines.length * 5 + 1;
+      }
+      y += 6;
+    }
+
+    if (summary.glossary.length > 0) {
+      doc.setFontSize(12);
+      doc.text("Istilah Penting", margin, y);
+      y += 7;
+      doc.setFontSize(10);
+      for (const item of summary.glossary) {
+        const lines = doc.splitTextToSize(`${item.term}: ${item.definition}`, pageWidth - margin * 2);
+        doc.text(lines, margin, y);
+        y += lines.length * 5 + 1;
+      }
+    }
+
+    doc.save(`rangkuman-${title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.pdf`);
   }
 
   function updateGlossaryRow(index: number, field: keyof GlossaryItem, value: string) {
@@ -93,22 +183,34 @@ export function SummaryPanel({
     );
   }
 
+  const isValidated = Boolean(summary?.validatedAt);
+
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-neutral-500">Rangkuman</h2>
         {summary && !editing && (
-          <div className="flex gap-3">
-            <button onClick={startEditing} className="text-sm text-neutral-500 hover:underline">
-              Revisi
-            </button>
-            <button
-              onClick={handleGenerate}
-              disabled={generating}
-              className="text-sm text-neutral-500 hover:underline disabled:opacity-50"
-            >
+          <div className="flex flex-wrap items-center gap-2">
+            {isValidated ? (
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
+                ✅ Sudah Divalidasi
+              </span>
+            ) : !confirming ? (
+              <Button variant="confirm" size="md" onClick={() => setConfirming(true)}>
+                ✅ Validasi
+              </Button>
+            ) : null}
+            {isValidated && (
+              <Button variant="outline" size="md" onClick={startEditing}>
+                Revisi Lagi
+              </Button>
+            )}
+            <Button variant="outline" size="md" onClick={handleGenerate} disabled={generating}>
               {generating ? "Membuat ulang..." : "Generate Ulang"}
-            </button>
+            </Button>
+            <Button variant="ghost" size="md" onClick={handlePrint}>
+              🖨️ Cetak Rangkuman
+            </Button>
           </div>
         )}
       </div>
@@ -124,15 +226,30 @@ export function SummaryPanel({
           ) : (
             <>
               <p className="text-sm text-neutral-500">Rangkuman belum dibuat.</p>
-              <button
-                onClick={handleGenerate}
-                disabled={generating}
-                className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-              >
+              <Button variant="primary" size="lg" onClick={handleGenerate} disabled={generating}>
                 {generating ? "Membuat rangkuman..." : "Generate Rangkuman"}
-              </button>
+              </Button>
             </>
           )}
+        </div>
+      )}
+
+      {summary && !editing && confirming && !isValidated && (
+        <div className="flex flex-col gap-3 rounded-lg border-2 border-primary/30 bg-sky-50 p-4 dark:bg-sky-950">
+          <p className="text-sm font-bold text-neutral-800 dark:text-neutral-100">
+            Apakah rangkuman ini sudah benar dan siap ditampilkan ke siswa?
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="confirm" size="md" onClick={handleValidate} disabled={validating}>
+              {validating ? "Memvalidasi..." : "✅ Ya, Sudah Benar"}
+            </Button>
+            <Button variant="outline" size="md" onClick={startEditing}>
+              ✏️ Belum, Perlu Diperbaiki
+            </Button>
+            <Button variant="ghost" size="md" onClick={() => setConfirming(false)}>
+              Batal
+            </Button>
+          </div>
         </div>
       )}
 
@@ -238,19 +355,12 @@ export function SummaryPanel({
           </div>
 
           <div className="flex gap-2">
-            <button
-              onClick={handleSaveEdit}
-              disabled={saving}
-              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900"
-            >
-              {saving ? "Menyimpan..." : "Simpan Revisi"}
-            </button>
-            <button
-              onClick={() => setEditing(false)}
-              className="rounded-md px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
-            >
+            <Button variant="commit" size="md" onClick={handleSaveEdit} disabled={saving}>
+              {saving ? "Menyimpan..." : "Simpan & Validasi"}
+            </Button>
+            <Button variant="outline" size="md" onClick={() => setEditing(false)}>
               Batal
-            </button>
+            </Button>
           </div>
         </div>
       )}

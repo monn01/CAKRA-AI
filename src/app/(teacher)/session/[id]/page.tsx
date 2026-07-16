@@ -48,17 +48,20 @@ export default async function SessionDetailPage({
         glossary:
           (teachingSession.summary.glossary as { term: string; definition: string }[] | null) ??
           [],
+        validatedAt: teachingSession.summary.validatedAt?.toISOString() ?? null,
       }
     : null;
   const initialMindMap = teachingSession.mindMap
     ? (teachingSession.mindMap.structure as unknown as MindMapStructure)
     : null;
+  const initialMindMapValidatedAt = teachingSession.mindMap?.validatedAt?.toISOString() ?? null;
   const latestQuiz = teachingSession.quizzes[0];
   const initialQuiz = latestQuiz
     ? {
         id: latestQuiz.id,
         roomCode: latestQuiz.roomCode,
         status: latestQuiz.status,
+        validatedAt: latestQuiz.validatedAt?.toISOString() ?? null,
         questions: latestQuiz.questions.map((q) => ({
           question: q.question,
           options: (q.options as string[] | null) ?? [],
@@ -88,8 +91,20 @@ export default async function SessionDetailPage({
         {teachingSession.title}
       </h1>
       <p className="text-sm text-neutral-500">
-        {teachingSession.subject} · Kelas {teachingSession.grade}
+        {teachingSession.subject}
+        {teachingSession.theme ? ` · ${teachingSession.theme}` : ""} · Kelas{" "}
+        {teachingSession.grade}
       </p>
+
+      {teachingSession.pptUrl && (
+        <a
+          href={teachingSession.pptUrl}
+          download={teachingSession.pptName ?? undefined}
+          className="flex w-fit items-center gap-2 rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-600 hover:border-primary/40 hover:text-primary dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300"
+        >
+          📎 {teachingSession.pptName ?? "Materi PPT"} — Unduh
+        </a>
+      )}
 
       <Link
         href={`/session/${teachingSession.id}/control`}
@@ -104,18 +119,26 @@ export default async function SessionDetailPage({
         sessionId={teachingSession.id}
         hasTranscript={hasTranscript}
         initialSummary={initialSummary}
+        title={teachingSession.title}
+        subject={teachingSession.subject}
+        grade={teachingSession.grade}
       />
 
       <MindMapViewer
         sessionId={teachingSession.id}
         hasTranscript={hasTranscript}
         initialStructure={initialMindMap}
+        initialValidatedAt={initialMindMapValidatedAt}
+        title={teachingSession.title}
       />
 
       <QuizPanel
         sessionId={teachingSession.id}
         hasTranscript={hasTranscript}
         initialQuiz={initialQuiz}
+        title={teachingSession.title}
+        subject={teachingSession.subject}
+        grade={teachingSession.grade}
       />
 
       {quizResults && (

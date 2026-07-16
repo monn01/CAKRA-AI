@@ -2,7 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { jsPDF } from "jspdf";
 import { QuizGameControl } from "@/components/dashboard/QuizGameControl";
+import { Button } from "@/components/ui/Button";
+import { getSocketClient } from "@/lib/socket/client";
 
 type Difficulty = "mudah" | "sedang" | "sulit";
 
@@ -19,6 +22,7 @@ type QuizData = {
   questions: QuizQuestionData[];
   roomCode: string | null;
   status: string;
+  validatedAt?: string | null;
 };
 
 const LETTERS = ["A", "B", "C", "D"];
@@ -42,16 +46,24 @@ export function QuizPanel({
   sessionId,
   hasTranscript,
   initialQuiz,
+  title,
+  subject,
+  grade,
 }: {
   sessionId: string;
   hasTranscript: boolean;
   initialQuiz: QuizData | null;
+  title: string;
+  subject: string;
+  grade: string;
 }) {
   const [quiz, setQuiz] = useState<QuizData | null>(initialQuiz);
   const [count, setCount] = useState(10);
   const [generating, setGenerating] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [validating, setValidating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [draft, setDraft] = useState<QuizQuestionData[]>([]);
   const [launching, setLaunching] = useState(false);
@@ -65,6 +77,7 @@ export function QuizPanel({
   async function handleGenerate() {
     setGenerating(true);
     setError(null);
+    setConfirming(false);
 
     const res = await fetch("/api/ai/quiz", {
       method: "POST",
@@ -87,6 +100,7 @@ export function QuizPanel({
   function startEditing() {
     if (!quiz) return;
     setDraft(quiz.questions.map((q) => ({ ...q, options: [...q.options] })));
+    setConfirming(false);
     setEditing(true);
   }
 
@@ -127,6 +141,82 @@ export function QuizPanel({
 
     setQuiz(data.quiz);
     setEditing(false);
+    getSocketClient().emit("content:validated", { sessionId, type: "quiz" });
+  }
+
+  async function handleValidate() {
+    if (!quiz) return;
+    setValidating(true);
+    setError(null);
+
+    const res = await fetch("/api/ai/quiz/validate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ quizId: quiz.id }),
+    });
+    const data = await res.json();
+
+    setValidating(false);
+
+    if (!res.ok) {
+      setError(data.error || "Gagal memvalidasi soal");
+      return;
+    }
+
+    setQuiz(data.quiz);
+    setConfirming(false);
+    getSocketClient().emit("content:validated", { sessionId, type: "quiz" });
+  }
+
+  function handlePrint() {
+    if (!quiz) return;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 18;
+    let y = 22;
+
+    doc.setFontSize(16);
+    doc.text(title, margin, y);
+    y += 7;
+    doc.setFontSize(10);
+    doc.setTextColor(120);
+    doc.text(`${subject} · Kelas ${grade} · Soal Latihan`, margin, y);
+    doc.setTextColor(0);
+    y += 12;
+
+    quiz.questions.forEach((q, i) => {
+      if (y > pageHeight - 40) {
+        doc.addPage();
+        y = 22;
+      }
+      doc.setFontSize(11);
+      const qLines = doc.splitTextToSize(`${i + 1}. ${q.question}`, pageWidth - margin * 2);
+      doc.text(qLines, margin, y);
+      y += qLines.length * 5.5 + 2;
+
+      doc.setFontSize(10);
+      q.options.forEach((opt, j) => {
+        const isCorrect = LETTERS[j] === q.correctAnswer;
+        doc.setTextColor(isCorrect ? 5 : 60, isCorrect ? 122 : 60, isCorrect ? 71 : 60);
+        const optLines = doc.splitTextToSize(opt, pageWidth - margin * 2 - 4);
+        doc.text(optLines, margin + 4, y);
+        y += optLines.length * 5;
+      });
+      doc.setTextColor(0);
+
+      if (q.explanation) {
+        doc.setFontSize(9);
+        doc.setTextColor(100);
+        const expLines = doc.splitTextToSize(`Pembahasan: ${q.explanation}`, pageWidth - margin * 2 - 4);
+        doc.text(expLines, margin + 4, y);
+        y += expLines.length * 4.5;
+        doc.setTextColor(0);
+      }
+      y += 6;
+    });
+
+    doc.save(`soal-${title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.pdf`);
   }
 
   async function handleLaunch() {
@@ -149,16 +239,35 @@ export function QuizPanel({
     }
 
     setQuiz((prev) => (prev ? { ...prev, roomCode: data.quiz.roomCode, status: data.quiz.status } : prev));
+    getSocketClient().emit("quiz:launched", { sessionId });
   }
+
+  const isValidated = Boolean(quiz?.validatedAt);
 
   return (
     <div className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-neutral-500">Quiz</h2>
         {quiz && !editing && (
-          <button onClick={startEditing} className="text-sm text-neutral-500 hover:underline">
-            Revisi Soal
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            {isValidated ? (
+              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
+                ✅ Sudah Divalidasi
+              </span>
+            ) : !confirming ? (
+              <Button variant="confirm" size="md" onClick={() => setConfirming(true)}>
+                ✅ Validasi Soal
+              </Button>
+            ) : null}
+            {isValidated && (
+              <Button variant="outline" size="md" onClick={startEditing}>
+                Revisi Lagi
+              </Button>
+            )}
+            <Button variant="ghost" size="md" onClick={handlePrint}>
+              🖨️ Cetak Soal
+            </Button>
+          </div>
         )}
       </div>
 
@@ -184,15 +293,30 @@ export function QuizPanel({
                   className="w-16 rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800"
                 />
               </div>
-              <button
-                onClick={handleGenerate}
-                disabled={generating}
-                className="rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-              >
+              <Button variant="primary" size="lg" onClick={handleGenerate} disabled={generating}>
                 {generating ? "Menyiapkan quiz..." : "Generate Quiz"}
-              </button>
+              </Button>
             </>
           )}
+        </div>
+      )}
+
+      {quiz && !editing && confirming && !isValidated && (
+        <div className="flex flex-col gap-3 rounded-lg border-2 border-primary/30 bg-sky-50 p-4 dark:bg-sky-950">
+          <p className="text-sm font-bold text-neutral-800 dark:text-neutral-100">
+            Apakah soal-soal ini sudah benar dan siap ditampilkan/dimainkan siswa?
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="confirm" size="md" onClick={handleValidate} disabled={validating}>
+              {validating ? "Memvalidasi..." : "✅ Ya, Sudah Benar"}
+            </Button>
+            <Button variant="outline" size="md" onClick={startEditing}>
+              ✏️ Belum, Perlu Diperbaiki
+            </Button>
+            <Button variant="ghost" size="md" onClick={() => setConfirming(false)}>
+              Batal
+            </Button>
+          </div>
         </div>
       )}
 
@@ -228,13 +352,9 @@ export function QuizPanel({
           )}
 
           {!quiz.roomCode && (
-            <button
-              onClick={handleLaunch}
-              disabled={launching}
-              className="w-fit rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-            >
+            <Button variant="primary" size="md" onClick={handleLaunch} disabled={launching} className="w-fit">
               {launching ? "Meluncurkan..." : "Launch Quiz"}
-            </button>
+            </Button>
           )}
 
           <div className="flex items-center justify-between">
@@ -248,13 +368,9 @@ export function QuizPanel({
                 onChange={(e) => setCount(Number(e.target.value))}
                 className="w-14 rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800"
               />
-              <button
-                onClick={handleGenerate}
-                disabled={generating}
-                className="text-sm text-neutral-500 hover:underline disabled:opacity-50"
-              >
+              <Button variant="outline" size="md" onClick={handleGenerate} disabled={generating}>
                 {generating ? "Membuat ulang..." : "Generate Ulang"}
-              </button>
+              </Button>
             </div>
           </div>
 
@@ -365,19 +481,12 @@ export function QuizPanel({
           </button>
 
           <div className="flex gap-2">
-            <button
-              onClick={handleSaveEdit}
-              disabled={saving}
-              className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900"
-            >
-              {saving ? "Menyimpan..." : "Simpan Revisi"}
-            </button>
-            <button
-              onClick={() => setEditing(false)}
-              className="rounded-md px-4 py-2 text-sm font-medium text-neutral-600 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800"
-            >
+            <Button variant="commit" size="md" onClick={handleSaveEdit} disabled={saving}>
+              {saving ? "Menyimpan..." : "Simpan & Validasi"}
+            </Button>
+            <Button variant="outline" size="md" onClick={() => setEditing(false)}>
               Batal
-            </button>
+            </Button>
           </div>
         </div>
       )}

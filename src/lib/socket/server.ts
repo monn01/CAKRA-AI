@@ -288,6 +288,51 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
     );
 
     socket.on(
+      "ppt:slide",
+      safeHandler(async ({ sessionId, index }: { sessionId: string; index: number }) => {
+        const teacherId = await teacherIdPromise;
+        if (!teacherId) return;
+
+        const owned = await prisma.session.findUnique({ where: { id: sessionId } });
+        if (!owned || owned.teacherId !== teacherId) return;
+
+        io?.to(sessionId).emit("ppt:slide", { index });
+      })
+    );
+
+    // Next.js Route Handler (App Router) berjalan di module graph Turbopack yang
+    // terpisah dari module yang di-import langsung oleh server.ts, jadi getSocketServer()
+    // yang dipanggil dari dalam route handler TIDAK PERNAH melihat `io` yang sama —
+    // makanya broadcast real-time (setelah guru validasi/launch quiz lewat HTTP POST)
+    // dilempar balik ke client, dan client-lah yang emit event socket ini (pola sama
+    // seperti display:mode/ppt:slide di atas), bukan API route yang emit langsung.
+    socket.on(
+      "content:validated",
+      safeHandler(async ({ sessionId, type }: { sessionId: string; type: string }) => {
+        const teacherId = await teacherIdPromise;
+        if (!teacherId) return;
+
+        const owned = await prisma.session.findUnique({ where: { id: sessionId } });
+        if (!owned || owned.teacherId !== teacherId) return;
+
+        io?.to(sessionId).emit("content:validated", { type });
+      })
+    );
+
+    socket.on(
+      "quiz:launched",
+      safeHandler(async ({ sessionId }: { sessionId: string }) => {
+        const teacherId = await teacherIdPromise;
+        if (!teacherId) return;
+
+        const owned = await prisma.session.findUnique({ where: { id: sessionId } });
+        if (!owned || owned.teacherId !== teacherId) return;
+
+        io?.to(sessionId).emit("quiz:launched", {});
+      })
+    );
+
+    socket.on(
       "transcript:chunk",
       safeHandler(
         async ({
@@ -484,4 +529,15 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
 export function getSocketServer(): SocketIOServer {
   if (!io) throw new Error("Socket.IO server belum diinisialisasi");
   return io;
+}
+
+// Dipakai dari API route (bukan socket handler) yang cuma perlu broadcast best-effort
+// ke proyektor — kalau socket server belum siap, aksi utama (mis. simpan validasi ke DB)
+// tetap harus sukses, jadi kegagalan emit di sini cuma di-log, tidak melempar error.
+export function emitToSession(sessionId: string, event: string, payload: unknown): void {
+  try {
+    getSocketServer().to(sessionId).emit(event, payload);
+  } catch (err) {
+    console.warn(`[socket] gagal emit "${event}" ke sesi ${sessionId}:`, err);
+  }
 }

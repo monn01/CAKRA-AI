@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireTeacher, getOwnedQuiz } from "@/lib/api-auth";
 import { prisma } from "@/lib/prisma";
-import { getSocketServer } from "@/lib/socket/server";
+import { emitToSession } from "@/lib/socket/server";
 
 function generateRoomCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
         where: { id: quizId },
         data: { roomCode, status: "LOBBY" },
       });
-      getSocketServer().to(owned.sessionId).emit("quiz:launched", {});
+      emitToSession(owned.sessionId, "quiz:launched", {});
       return NextResponse.json({ quiz });
     } catch (err) {
       const isUniqueViolation =

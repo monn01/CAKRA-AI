@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 
     const mindMap = await prisma.mindMap.upsert({
       where: { sessionId },
-      update: { structure },
+      update: { structure, validatedAt: null },
       create: { sessionId, structure },
     });
 

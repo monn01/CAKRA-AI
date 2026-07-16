@@ -1,0 +1,122 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Teacher {
+  id        String    @id @default(cuid())
+  name      String
+  email     String    @unique
+  password  String
+  sessions  Session[]
+  createdAt DateTime  @default(now())
+}
+
+model Session {
+  id         String        @id @default(cuid())
+  title      String
+  subject    String
+  grade      String
+  teacherId  String
+  teacher    Teacher       @relation(fields: [teacherId], references: [id])
+  transcript Transcript?
+  summary    Summary?
+  mindMap    MindMap?
+  quizzes    Quiz[]
+  status     SessionStatus @default(IDLE)
+  startedAt  DateTime?
+  endedAt    DateTime?
+  createdAt  DateTime      @default(now())
+}
+
+model Transcript {
+  id        String            @id @default(cuid())
+  sessionId String            @unique
+  session   Session           @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  chunks    TranscriptChunk[]
+  fullText  String            @db.Text
+  createdAt DateTime          @default(now())
+}
+
+model TranscriptChunk {
+  id           String     @id @default(cuid())
+  transcriptId String
+  transcript   Transcript @relation(fields: [transcriptId], references: [id], onDelete: Cascade)
+  text         String
+  timestamp    Float
+  createdAt    DateTime   @default(now())
+}
+
+model Summary {
+  id        String   @id @default(cuid())
+  sessionId String   @unique
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  content   String   @db.Text
+  keyPoints Json
+  glossary  Json     @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MindMap {
+  id        String   @id @default(cuid())
+  sessionId String   @unique
+  session   Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  structure Json
+  imageUrl  String?
+  createdAt DateTime @default(now())
+}
+
+model Quiz {
+  id        String         @id @default(cuid())
+  sessionId String
+  session   Session        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  questions QuizQuestion[]
+  roomCode  String?        @unique
+  status    QuizStatus     @default(DRAFT)
+  createdAt DateTime       @default(now())
+}
+
+model QuizQuestion {
+  id            String   @id @default(cuid())
+  quizId        String
+  quiz          Quiz     @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  question      String
+  options       Json
+  correctAnswer String
+  explanation   String?
+  difficulty    String   @default("sedang")
+  order         Int
+}
+
+model QuizAttempt {
+  id         String   @id @default(cuid())
+  quizId     String
+  playerName String
+  score      Int
+  answers    Json
+  createdAt  DateTime @default(now())
+}
+
+enum SessionStatus {
+  IDLE
+  RECORDING
+  PROCESSING
+  COMPLETED
+}
+
+enum QuizStatus {
+  DRAFT
+  LOBBY
+  ACTIVE
+  COMPLETED
+}

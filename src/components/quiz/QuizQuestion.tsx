@@ -89,7 +89,7 @@ export function QuizQuestion({
         )}
       </div>
 
-      <p className={isProjector ? "text-center text-3xl font-semibold" : "text-lg font-medium text-neutral-900 dark:text-neutral-50"}>
+      <p className={isProjector ? "text-center text-4xl font-black" : "text-xl font-black text-neutral-900 dark:text-neutral-50 leading-snug"}>
         {question}
       </p>
 
@@ -107,9 +107,9 @@ export function QuizQuestion({
               type="button"
               disabled={!isClickable}
               onClick={() => isClickable && onSelectAnswer?.(letter)}
-              className={`relative overflow-hidden rounded-2xl border-3 p-5 text-left text-lg font-bold transition-all ${optionColor(
+              className={`relative overflow-hidden rounded-2xl border-3 p-5 text-left text-lg font-black transition-all ${optionColor(
                 { letter, phase, correctAnswer, selectedAnswer }
-              )} ${isClickable ? "cursor-pointer hover:border-primary hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-98" : "cursor-default"}`}
+              )} ${isClickable ? "cursor-pointer btn-chunky" : "cursor-default"}`}
             >
               {phase === "reveal" && (
                 <div

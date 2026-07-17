@@ -152,4 +152,74 @@ button:not([class*="react-flow"]):active:not(:disabled) {
   animation: typewriter-blink 0.9s steps(1) infinite;
 }
 
+/* --- Animasi & Gaya Tambahan Ramah Anak (SD) --- */
+
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(-3deg);
+  }
+  50% {
+    transform: rotate(3deg);
+  }
+}
+
+.animate-wiggle {
+  display: inline-block;
+  animation: wiggle 0.4s ease-in-out infinite;
+}
+
+/* Chunky Bubble Button & Cards */
+.btn-chunky {
+  border: 3px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 6px 0 0 rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s ease-in-out, background-color 0.2s ease !important;
+}
+
+.btn-chunky:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.03) !important;
+  box-shadow: 0 8px 0 0 rgba(0, 0, 0, 0.18);
+}
+
+.btn-chunky:active:not(:disabled) {
+  transform: translateY(4px) scale(0.97) !important;
+  box-shadow: 0 2px 0 0 rgba(0, 0, 0, 0.15);
+}
+
+.card-chunky {
+  border: 3px solid rgba(2, 132, 199, 0.1);
+  box-shadow: 0 10px 0 0 rgba(2, 132, 199, 0.08);
+  border-radius: 24px;
+  background-color: #ffffff;
+  transition: transform 0.25s ease-out, box-shadow 0.25s ease-out;
+}
+
+.card-chunky:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 0 0 rgba(2, 132, 199, 0.12);
+}
+
+/* Floating Confetti Particles */
+@keyframes float-up-particle {
+  0% {
+    transform: translateY(100vh) rotate(0deg) scale(0.5);
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-10vh) rotate(360deg) scale(1.2);
+    opacity: 0;
+  }
+}
+
+.confetti-particle {
+  position: absolute;
+  pointer-events: none;
+  z-index: 50;
+  bottom: 0;
+  animation: float-up-particle 3s linear forwards;
+}
+
+
 

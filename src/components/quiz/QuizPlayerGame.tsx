@@ -5,6 +5,7 @@ import { getSocketClient } from "@/lib/socket/client";
 import { QuizJoinForm } from "@/components/quiz/QuizJoinForm";
 import { QuizQuestion } from "@/components/quiz/QuizQuestion";
 import { QuizResults } from "@/components/quiz/QuizResults";
+import { playSound } from "@/lib/sound";
 
 type QuestionData = {
   questionId: string;
@@ -32,6 +33,13 @@ type BreakdownItem = {
   totalAnswered: number;
 };
 
+type ConfettiItem = {
+  id: number;
+  left: number;
+  delay: number;
+  char: string;
+};
+
 type Phase = "join" | "waiting" | "question" | "answered" | "result" | "finished" | "loading-results";
 
 export function QuizPlayerGame({
@@ -50,6 +58,7 @@ export function QuizPlayerGame({
   const [result, setResult] = useState<ResultData | null>(null);
   const [rankings, setRankings] = useState<{ name: string; score: number }[]>([]);
   const [breakdown, setBreakdown] = useState<BreakdownItem[]>([]);
+  const [confetti, setConfetti] = useState<ConfettiItem[]>([]);
 
   useEffect(() => {
     if (phase !== "loading-results") return;
@@ -75,12 +84,27 @@ export function QuizPlayerGame({
       setQuestionStartedAt(Date.now());
       setSelectedAnswer(null);
       setResult(null);
+      setConfetti([]);
       setPhase("question");
     }
 
     function handleResult(data: ResultData) {
       setResult(data);
       setPhase("result");
+      if (data.correct) {
+        playSound.playCorrect();
+        const chars = ["⭐", "✨", "🎈", "🍬", "🍭", "🚀", "🌈"];
+        const newConfetti = Array.from({ length: 30 }, (_, i) => ({
+          id: i,
+          left: Math.random() * 100,
+          delay: Math.random() * 1.2,
+          char: chars[Math.floor(Math.random() * chars.length)],
+        }));
+        setConfetti(newConfetti);
+      } else {
+        playSound.playIncorrect();
+        setConfetti([]);
+      }
     }
 
     function handleFinished(data: {
@@ -90,6 +114,7 @@ export function QuizPlayerGame({
       setRankings(data.rankings);
       setBreakdown(data.breakdown);
       setPhase("finished");
+      playSound.playWin();
     }
 
     socket.on("quiz:question", handleQuestion);
@@ -107,6 +132,7 @@ export function QuizPlayerGame({
     if (!question) return;
     setSelectedAnswer(answer);
     setPhase("answered");
+    playSound.playPop();
     getSocketClient().emit("quiz:answer", {
       sessionId,
       questionId: question.questionId,
@@ -159,7 +185,24 @@ export function QuizPlayerGame({
 
   if ((phase === "question" || phase === "answered" || phase === "result") && question) {
     return (
-      <div className="flex w-full max-w-md flex-col gap-6">
+      <div className="flex w-full max-w-md flex-col gap-6 relative">
+        {phase === "result" && result?.correct && (
+          <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
+            {confetti.map((c) => (
+              <span
+                key={c.id}
+                className="confetti-particle text-3xl"
+                style={{
+                  left: `${c.left}%`,
+                  animationDelay: `${c.delay}s`,
+                }}
+              >
+                {c.char}
+              </span>
+            ))}
+          </div>
+        )}
+
         <QuizQuestion
           variant="player"
           question={question.question}
@@ -183,27 +226,31 @@ export function QuizPlayerGame({
 
         {phase === "result" && result && (
           <div
-            className={`rounded-lg p-5 text-center text-base shadow-lg border-3 transition-all ${
+            className={`card-chunky p-6 text-center text-base transition-all ${
               result.correct
                 ? "bg-emerald-50 border-emerald-300 text-emerald-800"
                 : "bg-red-50 border-red-200 text-red-700"
             }`}
           >
-            <p className="text-2xl font-black mb-2">
-              {result.correct ? "Hebat! Jawabanmu BENAR! 🥳" : "Yah, belum tepat... 🥹"}
+            <p className="text-3xl font-black mb-2">
+              {result.correct ? "Hebat! Jawabanmu BENAR! 🥳🎉" : "Yah, hampir tepat... 🥹💪"}
             </p>
-            {result.correct && (
-              <p className="text-lg font-extrabold text-emerald-600 mb-2">
-                Kamu dapat +{result.pointsEarned} poin! 🏆
+            {result.correct ? (
+              <p className="text-lg font-black text-emerald-600 mb-2">
+                Kamu dapat +{result.pointsEarned} poin! 🏆⭐
+              </p>
+            ) : (
+              <p className="text-lg font-black text-red-500 mb-2">
+                Ayo coba lagi di soal berikutnya ya!
               </p>
             )}
             {result.explanation && (
-              <p className="mt-2 text-sm font-semibold opacity-90 border-t border-dashed border-current pt-2 text-left">
+              <p className="mt-3 text-sm font-bold opacity-90 border-t-2 border-dashed border-current pt-2 text-left leading-relaxed">
                 💡 Penjelasan: {result.explanation}
               </p>
             )}
-            <p className="mt-3 text-lg font-black text-neutral-700">
-              Total Skor Kamu: {result.score} ⭐
+            <p className="mt-4 text-xl font-black text-neutral-800 bg-neutral-100/50 py-2 rounded-full border border-neutral-200">
+              Total Skor: {result.score} ⭐
             </p>
           </div>
         )}
@@ -213,3 +260,4 @@ export function QuizPlayerGame({
 
   return null;
 }
+

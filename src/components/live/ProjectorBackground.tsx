@@ -6,7 +6,18 @@ const PALETTE = ["#38bdf8", "#fbbf24", "#fb923c", "#34d399", "#f472b6"];
 const NODE_COUNT = 16;
 const MAX_LINK_DISTANCE = 26; // dalam persen layar
 
+// Mode siang: warna blob pastel + doodle mengambang biar gak putih polosan.
+// Teks (caption maupun transkrip penuh) selalu ada di kolom tengah yang
+// dibatasi lebar (max-w-4xl/5xl mx-auto), tapi tingginya bisa macam-macam
+// (caption nempel di bawah, transkrip penuh bisa sepanjang layar & discroll)
+// — makanya dekorasi ditaruh di margin kiri-kanan aja, bukan atas-bawah,
+// supaya di kondisi apapun gak numpuk sama teks.
+const LIGHT_BLOB_COLORS = ["#7dd3fc", "#fde68a", "#f9a8d4", "#6ee7b7", "#c4b5fd"];
+const LIGHT_DOODLES = ["☁️", "⭐", "🌈", "✨", "☁️", "🎈", "🌟"];
+
 type Node = { x: number; y: number; size: number; color: string; duration: number; delay: number };
+type Blob = { x: number; y: number; size: number; color: string; duration: number; delay: number };
+type Doodle = { x: number; y: number; size: number; char: string; duration: number; delay: number };
 
 // PRNG deterministik (bukan Math.random) supaya posisi node sama persis
 // antara render server & client — hindari hydration mismatch.
@@ -21,7 +32,7 @@ function mulberry32(seed: number) {
   };
 }
 
-export function ProjectorBackground({ seed = 7 }: { seed?: number }) {
+export function ProjectorBackground({ seed = 7, light = false }: { seed?: number; light?: boolean }) {
   const nodes = useMemo<Node[]>(() => {
     const rand = mulberry32(seed);
     return Array.from({ length: NODE_COUNT }, (_, i) => ({
@@ -47,6 +58,74 @@ export function ProjectorBackground({ seed = 7 }: { seed?: number }) {
     }
     return result;
   }, [nodes]);
+
+  const blobs = useMemo<Blob[]>(() => {
+    const rand = mulberry32(seed + 100);
+    return LIGHT_BLOB_COLORS.map((color, i) => {
+      const onLeft = i % 2 === 0;
+      return {
+        color,
+        x: onLeft ? 1 + rand() * 13 : 86 + rand() * 13,
+        y: 4 + rand() * 90,
+        size: 22 + rand() * 14,
+        duration: 16 + rand() * 12,
+        delay: rand() * -18,
+      };
+    });
+  }, [seed]);
+
+  const doodles = useMemo<Doodle[]>(() => {
+    const rand = mulberry32(seed + 200);
+    return LIGHT_DOODLES.map((char, i) => {
+      const onLeft = i % 2 === 0;
+      return {
+        char,
+        x: onLeft ? 1 + rand() * 11 : 88 + rand() * 11,
+        y: 3 + rand() * 90,
+        size: 26 + rand() * 18,
+        duration: 7 + rand() * 7,
+        delay: rand() * -10,
+      };
+    });
+  }, [seed]);
+
+  if (light) {
+    return (
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+        {blobs.map((b, i) => (
+          <span
+            key={i}
+            className="projector-blob absolute rounded-full blur-3xl"
+            style={{
+              left: `${b.x}%`,
+              top: `${b.y}%`,
+              width: `${b.size}vmin`,
+              height: `${b.size}vmin`,
+              backgroundColor: b.color,
+              opacity: 0.35,
+              animationDuration: `${b.duration}s`,
+              animationDelay: `${b.delay}s`,
+            }}
+          />
+        ))}
+        {doodles.map((d, i) => (
+          <span
+            key={i}
+            className="projector-doodle absolute select-none"
+            style={{
+              left: `${d.x}%`,
+              top: `${d.y}%`,
+              fontSize: `${d.size}px`,
+              animationDuration: `${d.duration}s`,
+              animationDelay: `${d.delay}s`,
+            }}
+          >
+            {d.char}
+          </span>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">

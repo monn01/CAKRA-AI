@@ -221,5 +221,39 @@ button:not([class*="react-flow"]):active:not(:disabled) {
   animation: float-up-particle 3s linear forwards;
 }
 
+/* --- Layar Proyektor Mode Siang: blob pastel & doodle mengambang --- */
+
+@keyframes projector-blob-float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(-16px, 18px) scale(1.08);
+  }
+}
+
+.projector-blob {
+  animation-name: projector-blob-float;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@keyframes projector-doodle-float {
+  0%, 100% {
+    transform: translateY(0) rotate(-4deg);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateY(-16px) rotate(4deg);
+    opacity: 0.8;
+  }
+}
+
+.projector-doodle {
+  animation-name: projector-doodle-float;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
 
 

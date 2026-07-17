@@ -202,10 +202,10 @@ export function LiveDisplay({
   return (
     <div
       className={`relative h-screen w-screen overflow-hidden ${
-        light ? "bg-white" : "bg-indigo-950"
+        light ? "bg-gradient-to-br from-sky-50 via-white to-amber-50" : "bg-indigo-950"
       }`}
     >
-      {!light && <ProjectorBackground />}
+      <ProjectorBackground light={light} />
 
       <div className="relative z-10 flex h-full flex-col">
         <div className={pptSlideUrls.length > 0 ? "h-[42%]" : "h-full"}>

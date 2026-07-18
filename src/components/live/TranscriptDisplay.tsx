@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Mic } from "lucide-react";
 
 export function TranscriptDisplay({
   fullText,
@@ -26,12 +27,20 @@ export function TranscriptDisplay({
           Menunggu suara guru...
         </p>
       ) : (
-        <p
-          className={`mx-auto max-w-4xl whitespace-pre-wrap ${activeClass}`}
-          style={{ fontSize: fontSize * 0.7, lineHeight: 1.7 }}
-        >
-          {fullText}
-        </p>
+        <div className="mx-auto max-w-4xl">
+          {!light && (
+            <p className="mb-3 flex items-center gap-2 text-sm tracking-[0.2em] text-white/50 uppercase">
+              <Mic className="size-3.5" />
+              Penjelasan Guru
+            </p>
+          )}
+          <p
+            className={`whitespace-pre-wrap ${activeClass}`}
+            style={{ fontSize: fontSize * 0.7, lineHeight: 1.7 }}
+          >
+            {fullText}
+          </p>
+        </div>
       )}
       <div ref={bottomRef} />
     </div>

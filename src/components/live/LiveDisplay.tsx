@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Sparkles } from "lucide-react";
 import { getSocketClient } from "@/lib/socket/client";
 import { LiveCaption } from "@/components/live/LiveCaption";
 import { TranscriptDisplay } from "@/components/live/TranscriptDisplay";
@@ -69,6 +70,8 @@ export function LiveDisplay({
   const [light, setLight] = useState(false);
   const [sessionEnded, setSessionEnded] = useState(ENDED_STATUSES.includes(initialStatus));
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [recording, setRecording] = useState(initialStatus === "RECORDING");
+  const [connected, setConnected] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -106,6 +109,14 @@ export function LiveDisplay({
 
     function handleSessionStatus({ status }: { status: string }) {
       if (ENDED_STATUSES.includes(status)) setSessionEnded(true);
+      setRecording(status === "RECORDING");
+    }
+
+    function handleConnect() {
+      setConnected(true);
+    }
+    function handleDisconnect() {
+      setConnected(false);
     }
 
     function handleQuizLaunched() {
@@ -126,6 +137,12 @@ export function LiveDisplay({
     socket.on("quiz:launched", handleQuizLaunched);
     socket.on("ppt:slide", handlePptSlide);
     socket.on("content:validated", handleContentValidated);
+    socket.on("connect", handleConnect);
+    socket.on("disconnect", handleDisconnect);
+    // Sinkronisasi status koneksi socket yang sudah ada saat mount (bukan
+    // event baru) — tidak bisa diturunkan sinkron dari state lain.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setConnected(socket.connected);
 
     return () => {
       socket.off("transcript:update", handleTranscriptUpdate);
@@ -134,6 +151,8 @@ export function LiveDisplay({
       socket.off("quiz:launched", handleQuizLaunched);
       socket.off("ppt:slide", handlePptSlide);
       socket.off("content:validated", handleContentValidated);
+      socket.off("connect", handleConnect);
+      socket.off("disconnect", handleDisconnect);
     };
   }, [sessionId, router]);
 
@@ -157,6 +176,11 @@ export function LiveDisplay({
     return (
       <div className="relative flex h-screen w-screen overflow-hidden bg-indigo-950">
         <ProjectorBackground seed={11} />
+
+        <div className="absolute top-6 left-10 z-10 flex items-center gap-2">
+          <h2 className="font-serif text-2xl font-semibold tracking-tight text-brand">CAKRA-AI</h2>
+          <Sparkles className="size-3.5 text-brand/70" aria-hidden="true" />
+        </div>
 
         <div className="relative z-10 flex w-[38%] flex-col justify-center gap-4 px-10">
           <div>
@@ -186,7 +210,7 @@ export function LiveDisplay({
           <QRCodeCard
             qrDataUrl={qrDataUrl}
             heading="Bagikan ke Orang Tua"
-            helperText="Rangkuman & mind map"
+            helperText="Rangkuman & peta pikiran"
             alt="QR code menuju halaman resume pembelajaran"
             dark
             compact
@@ -195,7 +219,7 @@ export function LiveDisplay({
             <QRCodeCard
               qrDataUrl={quizQrDataUrl}
               heading="Ikuti Kuis"
-              helperText="Gabung quiz sesi ini"
+              helperText="Gabung kuis sesi ini"
               alt="QR code menuju halaman gabung quiz"
               dark
               compact
@@ -213,6 +237,34 @@ export function LiveDisplay({
       }`}
     >
       <ProjectorBackground light={light} />
+
+      {!light && (
+        <div className="absolute inset-x-0 top-0 z-20 flex items-start justify-between p-6">
+          <div className="flex items-center gap-2">
+            <h2 className="font-serif text-3xl font-semibold tracking-tight text-brand sm:text-4xl">
+              CAKRA-AI
+            </h2>
+            <Sparkles className="size-4 text-brand/70" aria-hidden="true" />
+          </div>
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1.5 text-xs font-semibold tracking-wider text-white/50 uppercase">
+              <span className={`size-1.5 rounded-full ${connected ? "bg-emerald-400" : "bg-red-400"}`} />
+              {connected ? "Tersambung ke Server" : "Menyambungkan ulang..."}
+            </span>
+            {recording && (
+              <span className="flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-4 py-1.5 backdrop-blur-md">
+                <span className="relative flex size-2">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-red-500 opacity-75" />
+                  <span className="relative inline-flex size-2 rounded-full bg-red-500" />
+                </span>
+                <span className="text-xs font-semibold tracking-wider text-red-400 uppercase">
+                  Merekam Sesi Aktif
+                </span>
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="relative z-10 flex h-full flex-col">
         <div className={pptSlideUrls.length > 0 ? "h-[42%]" : "h-full"}>

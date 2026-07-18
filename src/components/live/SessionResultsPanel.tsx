@@ -28,7 +28,7 @@ function ResultCard({
 }) {
   return (
     <div className="mb-6 rounded-2xl bg-white/95 p-6 shadow-xl">
-      <h3 className="mb-3 text-lg font-black text-primary">
+      <h3 className="mb-3 text-lg font-black text-brand">
         {icon} {title}
       </h3>
       {children}

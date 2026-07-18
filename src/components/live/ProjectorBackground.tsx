@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 
-const PALETTE = ["#38bdf8", "#fbbf24", "#fb923c", "#34d399", "#f472b6"];
+const PALETTE = ["#6366f1", "#818cf8", "#6366f1", "#818cf8", "#6366f1"];
 const NODE_COUNT = 16;
 const MAX_LINK_DISTANCE = 26; // dalam persen layar
 

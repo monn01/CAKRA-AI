@@ -13,8 +13,8 @@ export function QRCodeCard({
   dark?: boolean;
   compact?: boolean;
 }) {
-  const textClass = dark ? "text-white" : "text-neutral-900";
-  const mutedClass = dark ? "text-neutral-400" : "text-neutral-500";
+  const textClass = dark ? "text-white" : "text-brand-dark";
+  const mutedClass = dark ? "text-neutral-400" : "text-brand-muted";
 
   if (compact) {
     return (
@@ -55,8 +55,8 @@ export function QRCodeGenerator({
   dateLabel: string;
   dark?: boolean;
 }) {
-  const textClass = dark ? "text-white" : "text-neutral-900";
-  const mutedClass = dark ? "text-neutral-400" : "text-neutral-500";
+  const textClass = dark ? "text-white" : "text-brand-dark";
+  const mutedClass = dark ? "text-neutral-400" : "text-brand-muted";
 
   return (
     <div className="flex flex-col items-center gap-4 text-center">
@@ -69,7 +69,7 @@ export function QRCodeGenerator({
 
       <QRCodeCard
         qrDataUrl={qrDataUrl}
-        heading="Rangkuman & Mind Map"
+        heading="Rangkuman & Peta Pikiran"
         helperText="Scan untuk lihat rangkuman, mind map, dan soal latihan"
         alt="QR code menuju halaman resume pembelajaran"
         dark={dark}

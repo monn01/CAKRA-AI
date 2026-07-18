@@ -42,7 +42,7 @@ export function PrintQRButton({
   return (
     <button
       onClick={handlePrint}
-      className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-800"
+      className="cursor-pointer rounded-lg border border-brand-dark px-4 py-2 text-sm font-medium text-brand-dark transition-all duration-150 hover:bg-brand-cream-alt active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:ring-offset-2"
     >
       Cetak / Unduh PDF
     </button>

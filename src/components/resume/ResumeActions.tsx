@@ -105,7 +105,7 @@ export function ResumeActions({
           const { width: elW, height: elH } = mindMapRef.current.getBoundingClientRect();
           const imgHeight = (elH / elW) * pageWidth;
 
-          addText("Mind Map", 13, 8);
+          addText("Peta Pikiran", 13, 8);
           if (y + imgHeight > 280) {
             doc.addPage();
             y = 20;
@@ -145,7 +145,7 @@ export function ResumeActions({
         onClick={handleCopyLink}
         className="flex-1 rounded-full border-2 border-primary/20 bg-white px-4 py-3 text-sm font-black text-primary hover:bg-sky-50 shadow-md active:scale-95 transition-all cursor-pointer"
       >
-        {copied ? "Tersalin! ✨" : "Salin Link 🔗"}
+        {copied ? "Tersalin! ✨" : "Salin Tautan 🔗"}
       </button>
       <button
         onClick={handleSavePDF}

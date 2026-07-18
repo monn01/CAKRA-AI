@@ -107,7 +107,7 @@ export function QuizJoinForm({
         disabled={joining}
         className="rounded-full bg-amber-400 hover:bg-amber-500 px-6 py-4 text-xl font-black text-amber-950 shadow-lg active:scale-95 transition-all disabled:opacity-50 cursor-pointer btn-chunky"
       >
-        {joining ? "Sedang masuk... 🚀" : "Mulai Ikut Quiz! 🎉"}
+        {joining ? "Sedang masuk... 🚀" : "Mulai Ikut Kuis! 🎉"}
       </button>
     </form>
   );

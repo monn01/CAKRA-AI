@@ -176,7 +176,7 @@ export function QuizPlayerGame({
     return (
       <div className="flex flex-col items-center gap-6 text-center w-full">
         <p className="text-3xl font-black text-primary">
-          Quiz Selesai! Hore! 🥳🏆
+          Kuis Selesai! Hore! 🥳🏆
         </p>
         <QuizResults rankings={rankings} breakdown={breakdown} light />
       </div>

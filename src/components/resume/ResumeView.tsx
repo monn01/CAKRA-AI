@@ -124,7 +124,7 @@ export function ResumeView({
 
       <section className="rounded-2xl bg-white p-6 shadow-md border-2 border-primary/5 flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-black text-primary tracking-wide uppercase">Mind Map 🗺️</h2>
+          <h2 className="text-sm font-black text-primary tracking-wide uppercase">Peta Pikiran 🗺️</h2>
           {mindMap && (
             <button
               onClick={handleDownloadMindMap}
@@ -138,7 +138,7 @@ export function ResumeView({
         {mindMap ? (
           <InteractiveMindMap ref={mindMapRef} structure={mindMap} height={320} />
         ) : (
-          <p className="text-base text-neutral-400 font-bold">Oops! Peta pikiran (mind map) belum siap nih. Tunggu bapak/ibu guru ya! 🗺️</p>
+          <p className="text-base text-neutral-400 font-bold">Oops! Peta pikiran belum siap nih. Tunggu bapak/ibu guru ya! 🗺️</p>
         )}
       </section>
 

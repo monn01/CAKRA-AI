@@ -186,13 +186,15 @@ export function SummaryPanel({
   const isValidated = Boolean(summary?.validatedAt);
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="flex flex-col gap-3 rounded-2xl border border-black/10 bg-brand-card p-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-neutral-500">Rangkuman</h2>
+        <h2 className="text-sm font-semibold tracking-wide text-brand-muted uppercase">
+          Rangkuman
+        </h2>
         {summary && !editing && (
           <div className="flex flex-wrap items-center gap-2">
             {isValidated ? (
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
+              <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-bold text-success">
                 ✅ Sudah Divalidasi
               </span>
             ) : !confirming ? (
@@ -206,7 +208,7 @@ export function SummaryPanel({
               </Button>
             )}
             <Button variant="outline" size="md" onClick={handleGenerate} disabled={generating}>
-              {generating ? "Membuat ulang..." : "Generate Ulang"}
+              {generating ? "Membuat ulang..." : "Buat Ulang"}
             </Button>
             <Button variant="ghost" size="md" onClick={handlePrint}>
               🖨️ Cetak Rangkuman
@@ -220,14 +222,14 @@ export function SummaryPanel({
       {!summary && !editing && (
         <div className="flex flex-col items-center gap-2 py-6 text-center">
           {!hasTranscript ? (
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-brand-muted">
               Transkrip belum tersedia. Selesaikan rekaman sesi terlebih dahulu.
             </p>
           ) : (
             <>
-              <p className="text-sm text-neutral-500">Rangkuman belum dibuat.</p>
+              <p className="text-sm text-brand-muted">Rangkuman belum dibuat.</p>
               <Button variant="primary" size="lg" onClick={handleGenerate} disabled={generating}>
-                {generating ? "Membuat rangkuman..." : "Generate Rangkuman"}
+                {generating ? "Membuat rangkuman..." : "Buat Rangkuman"}
               </Button>
             </>
           )}
@@ -235,8 +237,8 @@ export function SummaryPanel({
       )}
 
       {summary && !editing && confirming && !isValidated && (
-        <div className="flex flex-col gap-3 rounded-lg border-2 border-primary/30 bg-sky-50 p-4 dark:bg-sky-950">
-          <p className="text-sm font-bold text-neutral-800 dark:text-neutral-100">
+        <div className="flex flex-col gap-3 rounded-xl border-2 border-confirm/30 bg-confirm/5 p-4">
+          <p className="text-sm font-bold text-brand-dark">
             Apakah rangkuman ini sudah benar dan siap ditampilkan ke siswa?
           </p>
           <div className="flex flex-wrap gap-2">
@@ -260,16 +262,12 @@ export function SummaryPanel({
           transition={{ duration: 0.25 }}
           className="flex flex-col gap-4 text-sm"
         >
-          <p className="whitespace-pre-wrap text-neutral-700 dark:text-neutral-300">
-            {summary.content}
-          </p>
+          <p className="whitespace-pre-wrap text-brand-dark">{summary.content}</p>
 
           {summary.keyPoints.length > 0 && (
             <div>
-              <h3 className="mb-1 font-medium text-neutral-900 dark:text-neutral-50">
-                Poin Kunci
-              </h3>
-              <ul className="list-disc space-y-1 pl-5 text-neutral-700 dark:text-neutral-300">
+              <h3 className="mb-1 font-semibold text-brand-dark">Poin Kunci</h3>
+              <ul className="list-disc space-y-1 pl-5 text-brand-dark/90">
                 {summary.keyPoints.map((point, i) => (
                   <li key={i}>{point}</li>
                 ))}
@@ -279,18 +277,12 @@ export function SummaryPanel({
 
           {summary.glossary.length > 0 && (
             <div>
-              <h3 className="mb-1 font-medium text-neutral-900 dark:text-neutral-50">
-                Istilah Penting
-              </h3>
+              <h3 className="mb-1 font-semibold text-brand-dark">Istilah Penting</h3>
               <dl className="space-y-1">
                 {summary.glossary.map((item, i) => (
                   <div key={i}>
-                    <dt className="inline font-medium text-neutral-900 dark:text-neutral-50">
-                      {item.term}:{" "}
-                    </dt>
-                    <dd className="inline text-neutral-700 dark:text-neutral-300">
-                      {item.definition}
-                    </dd>
+                    <dt className="inline font-semibold text-brand-dark">{item.term}: </dt>
+                    <dd className="inline text-brand-dark/90">{item.definition}</dd>
                   </div>
                 ))}
               </dl>
@@ -302,29 +294,31 @@ export function SummaryPanel({
       {editing && (
         <div className="flex flex-col gap-3">
           <div>
-            <label className="mb-1 block text-xs font-medium text-neutral-500">Rangkuman</label>
+            <label className="mb-1 block text-xs font-semibold tracking-wide text-brand-muted">
+              Rangkuman
+            </label>
             <textarea
               value={draftContent}
               onChange={(e) => setDraftContent(e.target.value)}
               rows={6}
-              className="w-full rounded-md border border-neutral-300 p-3 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-800"
+              className="w-full rounded-lg border border-[#dbc1b9] bg-brand-cream-alt p-3 text-sm text-brand-dark outline-none focus:border-brand"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-neutral-500">
+            <label className="mb-1 block text-xs font-semibold tracking-wide text-brand-muted">
               Poin Kunci (satu per baris)
             </label>
             <textarea
               value={draftKeyPoints}
               onChange={(e) => setDraftKeyPoints(e.target.value)}
               rows={5}
-              className="w-full rounded-md border border-neutral-300 p-3 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-800"
+              className="w-full rounded-lg border border-[#dbc1b9] bg-brand-cream-alt p-3 text-sm text-brand-dark outline-none focus:border-brand"
             />
           </div>
 
           <div>
-            <label className="mb-1 block text-xs font-medium text-neutral-500">
+            <label className="mb-1 block text-xs font-semibold tracking-wide text-brand-muted">
               Istilah Penting
             </label>
             <div className="flex flex-col gap-2">
@@ -334,20 +328,20 @@ export function SummaryPanel({
                     value={item.term}
                     onChange={(e) => updateGlossaryRow(i, "term", e.target.value)}
                     placeholder="Istilah"
-                    className="w-1/3 rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-800"
+                    className="w-1/3 rounded-lg border border-[#dbc1b9] bg-brand-cream-alt px-3 py-2 text-sm text-brand-dark outline-none focus:border-brand"
                   />
                   <input
                     value={item.definition}
                     onChange={(e) => updateGlossaryRow(i, "definition", e.target.value)}
                     placeholder="Definisi"
-                    className="flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-800"
+                    className="flex-1 rounded-lg border border-[#dbc1b9] bg-brand-cream-alt px-3 py-2 text-sm text-brand-dark outline-none focus:border-brand"
                   />
                 </div>
               ))}
               <button
                 type="button"
                 onClick={() => setDraftGlossary((prev) => [...prev, { term: "", definition: "" }])}
-                className="w-fit text-sm text-neutral-500 hover:underline"
+                className="w-fit cursor-pointer rounded-md px-1 text-sm text-brand-muted transition-colors hover:bg-black/5 hover:text-brand-dark hover:underline"
               >
                 + Tambah istilah
               </button>

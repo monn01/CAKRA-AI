@@ -19,6 +19,22 @@
   --color-accent: #f97316; /* Oranye ceria (orange 500) */
   --color-success: #10b981; /* Hijau ceria (emerald 500) */
 
+  /* Tema baru sisi Panel Guru (redesign Figma) — krem/terracotta nuansa
+     batik, TERPISAH dari token ceria anak SD di atas. Dipakai cuma di
+     halaman guru yang sudah direstyle; tidak menimpa --color-primary dkk
+     supaya layar quiz/proyektor anak SD tidak ikut berubah. */
+  --color-brand: #b85c3e;
+  --color-brand-dark: #241e18;
+  --color-brand-muted: #746a5c;
+  --color-brand-cream: #f8f4ec;
+  --color-brand-cream-alt: #f2ece1;
+  --color-brand-card: #fdfbf7;
+  /* Aksen kedua buat aksi "konfirmasi/validasi" (beda dari brand terracotta
+     biar guru gak bingung generate vs validasi) — teal yang sama dipakai
+     buat kategori "Mind Map" di Analitik, tervalidasi lolos cek CVD/kontras
+     lewat scripts/validate_palette.js skill dataviz. */
+  --color-confirm: #0d9488;
+
   /* Radius sudut membulat empuk/gelembung (chunky & bubble-like) */
   --radius-sm: 10px;
   --radius-md: 18px;

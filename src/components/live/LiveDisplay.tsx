@@ -55,6 +55,13 @@ export function LiveDisplay({
   quiz: { questions: ReviewQuestion[]; validatedAt: string | null } | null;
 }) {
   const [mode, setMode] = useState<DisplayMode>("caption");
+  // finalLines = kalimat yang sudah utuh & dikunci (riwayat, redup).
+  // interimLine = baris yang lagi tumbuh real-time selagi guru bicara
+  // (terang, diketik via TypewriterText) — sengaja TETAP live per kata biar
+  // nggak ada delay, karena delay-nya justru bikin caption kerasa lambat.
+  // "Koreksi" (baris dikunci final & pindah ke riwayat) cuma terjadi sekali
+  // per KALIMAT utuh — itu terjadi di speech-handler.ts (sentenceBuffer),
+  // bukan di sini, jadi baris final tidak pernah ganti-ganti kata per kata.
   const [finalLines, setFinalLines] = useState<string[]>([]);
   const [interimLine, setInterimLine] = useState("");
   const [fullText, setFullText] = useState(initialFullText);
@@ -187,7 +194,7 @@ export function LiveDisplay({
           {quizQrDataUrl && (
             <QRCodeCard
               qrDataUrl={quizQrDataUrl}
-              heading="Ikuti Quiz"
+              heading="Ikuti Kuis"
               helperText="Gabung quiz sesi ini"
               alt="QR code menuju halaman gabung quiz"
               dark

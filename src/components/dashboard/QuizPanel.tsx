@@ -245,13 +245,13 @@ export function QuizPanel({
   const isValidated = Boolean(quiz?.validatedAt);
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="flex flex-col gap-3 rounded-2xl border border-black/10 bg-brand-card p-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-neutral-500">Quiz</h2>
+        <h2 className="text-sm font-semibold tracking-wide text-brand-muted uppercase">Kuis</h2>
         {quiz && !editing && (
           <div className="flex flex-wrap items-center gap-2">
             {isValidated ? (
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
+              <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-bold text-success">
                 ✅ Sudah Divalidasi
               </span>
             ) : !confirming ? (
@@ -276,25 +276,25 @@ export function QuizPanel({
       {!quiz && !editing && (
         <div className="flex flex-col items-center gap-3 py-6 text-center">
           {!hasTranscript ? (
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-brand-muted">
               Transkrip belum tersedia. Selesaikan rekaman sesi terlebih dahulu.
             </p>
           ) : (
             <>
-              <p className="text-sm text-neutral-500">Quiz belum dibuat.</p>
+              <p className="text-sm text-brand-muted">Kuis belum dibuat.</p>
               <div className="flex items-center gap-2">
-                <label className="text-sm text-neutral-500">Jumlah soal:</label>
+                <label className="text-sm text-brand-muted">Jumlah soal:</label>
                 <input
                   type="number"
                   min={5}
                   max={15}
                   value={count}
                   onChange={(e) => setCount(Number(e.target.value))}
-                  className="w-16 rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                  className="w-16 rounded-lg border border-[#dbc1b9] bg-brand-cream-alt px-2 py-1 text-sm text-brand-dark"
                 />
               </div>
               <Button variant="primary" size="lg" onClick={handleGenerate} disabled={generating}>
-                {generating ? "Menyiapkan quiz..." : "Generate Quiz"}
+                {generating ? "Menyiapkan kuis..." : "Buat Kuis"}
               </Button>
             </>
           )}
@@ -302,8 +302,8 @@ export function QuizPanel({
       )}
 
       {quiz && !editing && confirming && !isValidated && (
-        <div className="flex flex-col gap-3 rounded-lg border-2 border-primary/30 bg-sky-50 p-4 dark:bg-sky-950">
-          <p className="text-sm font-bold text-neutral-800 dark:text-neutral-100">
+        <div className="flex flex-col gap-3 rounded-xl border-2 border-confirm/30 bg-confirm/5 p-4">
+          <p className="text-sm font-bold text-brand-dark">
             Apakah soal-soal ini sudah benar dan siap ditampilkan/dimainkan siswa?
           </p>
           <div className="flex flex-wrap gap-2">
@@ -328,15 +328,15 @@ export function QuizPanel({
           className="flex flex-col gap-3"
         >
           {quiz.roomCode ? (
-            <div className="flex items-center justify-between rounded-md bg-teal-50 px-3 py-2 text-sm dark:bg-teal-950">
-              <span className="text-teal-700 dark:text-teal-300">
+            <div className="flex items-center justify-between rounded-lg bg-confirm/10 px-3 py-2 text-sm">
+              <span className="text-confirm">
                 Kode Ruangan: <span className="font-semibold">{quiz.roomCode}</span>
               </span>
               <a
                 href={`/quiz/${sessionId}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-teal-700 hover:underline dark:text-teal-300"
+                className="text-confirm hover:underline"
               >
                 Buka Layar Proyektor ↗
               </a>
@@ -353,12 +353,12 @@ export function QuizPanel({
 
           {!quiz.roomCode && (
             <Button variant="primary" size="md" onClick={handleLaunch} disabled={launching} className="w-fit">
-              {launching ? "Meluncurkan..." : "Launch Quiz"}
+              {launching ? "Meluncurkan..." : "Luncurkan Kuis"}
             </Button>
           )}
 
           <div className="flex items-center justify-between">
-            <p className="text-sm text-neutral-500">{quiz.questions.length} soal</p>
+            <p className="text-sm text-brand-muted">{quiz.questions.length} soal</p>
             <div className="flex items-center gap-2">
               <input
                 type="number"
@@ -366,24 +366,21 @@ export function QuizPanel({
                 max={15}
                 value={count}
                 onChange={(e) => setCount(Number(e.target.value))}
-                className="w-14 rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                className="w-14 rounded-lg border border-[#dbc1b9] bg-brand-cream-alt px-2 py-1 text-sm text-brand-dark"
               />
               <Button variant="outline" size="md" onClick={handleGenerate} disabled={generating}>
-                {generating ? "Membuat ulang..." : "Generate Ulang"}
+                {generating ? "Membuat ulang..." : "Buat Ulang"}
               </Button>
             </div>
           </div>
 
           {quiz.questions.map((q, i) => (
-            <div
-              key={i}
-              className="rounded-md border border-neutral-200 p-3 text-sm dark:border-neutral-800"
-            >
+            <div key={i} className="rounded-lg border border-black/10 p-3 text-sm">
               <div className="mb-2 flex items-center justify-between">
-                <p className="font-medium text-neutral-900 dark:text-neutral-50">
+                <p className="font-semibold text-brand-dark">
                   {i + 1}. {q.question}
                 </p>
-                <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600 dark:bg-neutral-800 dark:text-neutral-300">
+                <span className="shrink-0 rounded-full bg-brand-cream-alt px-2 py-0.5 text-xs text-brand-muted">
                   {DIFFICULTY_LABEL[q.difficulty] ?? q.difficulty}
                 </span>
               </div>
@@ -393,8 +390,8 @@ export function QuizPanel({
                     key={j}
                     className={
                       LETTERS[j] === q.correctAnswer
-                        ? "rounded bg-emerald-50 px-2 py-1 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400"
-                        : "px-2 py-1 text-neutral-600 dark:text-neutral-400"
+                        ? "rounded bg-success/10 px-2 py-1 text-success"
+                        : "px-2 py-1 text-brand-muted"
                     }
                   >
                     {opt}
@@ -402,7 +399,7 @@ export function QuizPanel({
                 ))}
               </ul>
               {q.explanation && (
-                <p className="mt-2 text-xs text-neutral-500">Pembahasan: {q.explanation}</p>
+                <p className="mt-2 text-xs text-brand-muted">Pembahasan: {q.explanation}</p>
               )}
             </div>
           ))}
@@ -412,15 +409,12 @@ export function QuizPanel({
       {editing && (
         <div className="flex flex-col gap-4">
           {draft.map((q, i) => (
-            <div
-              key={i}
-              className="flex flex-col gap-2 rounded-md border border-neutral-200 p-3 dark:border-neutral-800"
-            >
+            <div key={i} className="flex flex-col gap-2 rounded-lg border border-black/10 p-3">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-neutral-500">Soal {i + 1}</span>
+                <span className="text-xs font-semibold text-brand-muted">Soal {i + 1}</span>
                 <button
                   onClick={() => removeQuestion(i)}
-                  className="text-xs text-red-600 hover:underline"
+                  className="cursor-pointer rounded-md px-2 py-0.5 text-xs text-red-600 transition-colors hover:bg-red-50 hover:underline"
                 >
                   Hapus
                 </button>
@@ -431,7 +425,7 @@ export function QuizPanel({
                 onChange={(e) => updateQuestion(i, { question: e.target.value })}
                 rows={2}
                 placeholder="Pertanyaan"
-                className="rounded-md border border-neutral-300 p-2 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-800"
+                className="rounded-lg border border-[#dbc1b9] bg-brand-cream-alt p-2 text-sm text-brand-dark outline-none focus:border-brand"
               />
 
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -446,7 +440,7 @@ export function QuizPanel({
                     <input
                       value={opt}
                       onChange={(e) => updateOption(i, j, e.target.value)}
-                      className="flex-1 rounded-md border border-neutral-300 px-2 py-1 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-800"
+                      className="flex-1 rounded-lg border border-[#dbc1b9] bg-brand-cream-alt px-2 py-1 text-sm text-brand-dark outline-none focus:border-brand"
                     />
                   </div>
                 ))}
@@ -457,12 +451,12 @@ export function QuizPanel({
                   value={q.explanation}
                   onChange={(e) => updateQuestion(i, { explanation: e.target.value })}
                   placeholder="Penjelasan jawaban benar"
-                  className="flex-1 rounded-md border border-neutral-300 px-2 py-1 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-800"
+                  className="flex-1 rounded-lg border border-[#dbc1b9] bg-brand-cream-alt px-2 py-1 text-sm text-brand-dark outline-none focus:border-brand"
                 />
                 <select
                   value={q.difficulty}
                   onChange={(e) => updateQuestion(i, { difficulty: e.target.value as Difficulty })}
-                  className="rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+                  className="rounded-lg border border-[#dbc1b9] bg-brand-cream-alt px-2 py-1 text-sm text-brand-dark"
                 >
                   <option value="mudah">Mudah</option>
                   <option value="sedang">Sedang</option>
@@ -475,7 +469,7 @@ export function QuizPanel({
           <button
             type="button"
             onClick={() => setDraft((prev) => [...prev, emptyQuestion()])}
-            className="w-fit text-sm text-neutral-500 hover:underline"
+            className="w-fit cursor-pointer rounded-md px-1 text-sm text-brand-muted transition-colors hover:bg-black/5 hover:text-brand-dark hover:underline"
           >
             + Tambah Soal
           </button>

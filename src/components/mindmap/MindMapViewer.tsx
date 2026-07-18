@@ -132,28 +132,30 @@ export function MindMapViewer({
   const isValidated = Boolean(validatedAt);
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-neutral-200 bg-white p-4 dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="flex flex-col gap-3 rounded-2xl border border-black/10 bg-brand-card p-5">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-medium text-neutral-500">Mind Map</h2>
+        <h2 className="text-sm font-semibold tracking-wide text-brand-muted uppercase">
+          Peta Pikiran
+        </h2>
         {structure && (
           <div className="flex flex-wrap items-center gap-2">
             {isValidated ? (
-              <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400">
+              <span className="rounded-full bg-success/10 px-3 py-1 text-xs font-bold text-success">
                 ✅ Sudah Divalidasi
               </span>
             ) : (
               <Button variant="confirm" size="md" onClick={handleValidate} disabled={validating}>
-                {validating ? "Memvalidasi..." : "✅ Validasi Mind Map"}
+                {validating ? "Memvalidasi..." : "✅ Validasi Peta Pikiran"}
               </Button>
             )}
             <Button variant="outline" size="md" onClick={handleExport} disabled={exporting}>
-              {exporting ? "Mengekspor..." : "Export PNG"}
+              {exporting ? "Mengekspor..." : "Ekspor PNG"}
             </Button>
             <Button variant="ghost" size="md" onClick={handlePrint} disabled={printing}>
               {printing ? "Menyiapkan..." : "🖨️ Cetak PDF"}
             </Button>
             <Button variant="outline" size="md" onClick={handleGenerate} disabled={generating}>
-              {generating ? "Membuat ulang..." : "Generate Ulang"}
+              {generating ? "Membuat ulang..." : "Buat Ulang"}
             </Button>
           </div>
         )}
@@ -164,14 +166,14 @@ export function MindMapViewer({
       {!structure ? (
         <div className="flex flex-col items-center gap-2 py-6 text-center">
           {!hasTranscript ? (
-            <p className="text-sm text-neutral-500">
+            <p className="text-sm text-brand-muted">
               Transkrip belum tersedia. Selesaikan rekaman sesi terlebih dahulu.
             </p>
           ) : (
             <>
-              <p className="text-sm text-neutral-500">Mind map belum dibuat.</p>
+              <p className="text-sm text-brand-muted">Peta pikiran belum dibuat.</p>
               <Button variant="primary" size="lg" onClick={handleGenerate} disabled={generating}>
-                {generating ? "Menyusun mind map..." : "Generate Mind Map"}
+                {generating ? "Menyusun peta pikiran..." : "Buat Peta Pikiran"}
               </Button>
             </>
           )}

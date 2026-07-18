@@ -152,7 +152,7 @@ export function QuizProjectorGame({
     return (
       <main className="relative flex min-h-screen flex-col items-center justify-center gap-6 overflow-hidden bg-indigo-950 px-6 py-10 text-center">
         <ProjectorBackground seed={5} />
-        <p className="relative z-10 text-3xl font-semibold text-white">Quiz Selesai!</p>
+        <p className="relative z-10 text-3xl font-semibold text-white">Kuis Selesai!</p>
         <div className="relative z-10">
           <QuizResults rankings={rankings} breakdown={breakdown} />
         </div>

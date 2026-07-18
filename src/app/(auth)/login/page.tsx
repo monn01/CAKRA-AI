@@ -3,11 +3,13 @@
 import { useState, type FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { GraduationCap, User, Lock, Eye, EyeOff, ArrowRight, Phone } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -17,7 +19,6 @@ export default function LoginPage() {
     setError(null);
 
     const result = await signIn("credentials", {
-      
       email,
       password,
       redirect: false,
@@ -35,56 +36,111 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-neutral-50 px-4 dark:bg-neutral-950">
-      <div className="w-full max-w-sm rounded-xl border border-neutral-200 bg-white p-8 shadow-sm dark:border-neutral-800 dark:bg-neutral-900">
-        <h1 className="text-xl font-semibold text-neutral-900 dark:text-neutral-50">
-          Masuk sebagai Guru
-        </h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          SIBI-AI — Software Pendidikan Inklusif
+    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-brand-cream px-4 py-16">
+      <div className="absolute -top-32 -left-32 size-64 rounded-br-full bg-brand-cream-alt opacity-30" />
+      <div className="absolute -bottom-24 -right-32 size-96 rounded-tl-full bg-brand opacity-10" />
+
+      <div className="relative flex w-full max-w-[500px] flex-col gap-8">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <div className="flex items-center justify-center gap-2">
+            <GraduationCap className="size-6 text-brand" strokeWidth={2.25} />
+            <h1 className="font-serif text-3xl font-bold text-brand">Inovasi CAKRA</h1>
+          </div>
+          <h2 className="font-serif text-2xl font-bold text-brand-dark">
+            Selamat Datang di Panel Guru
+          </h2>
+          <p className="text-base text-brand-muted">
+            Silakan masuk untuk mengakses modul pengajaran.
+          </p>
+        </div>
+
+        <div className="rounded-xl border border-black/10 bg-brand-card p-8 shadow-sm">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="email"
+                className="text-xs font-bold tracking-wider text-brand-dark uppercase"
+              >
+                Nama Pengguna atau Surel
+              </label>
+              <div className="relative">
+                <User className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-brand-muted" />
+                <input
+                  id="email"
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Masukkan surel Anda..."
+                  className="w-full rounded-lg border border-black/20 bg-brand-cream-alt py-3 pr-4 pl-10 text-base text-brand-dark outline-none placeholder:text-brand-muted focus:border-brand"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <label
+                htmlFor="password"
+                className="text-xs font-bold tracking-wider text-brand-dark uppercase"
+              >
+                Kata Sandi
+              </label>
+              <div className="relative">
+                <Lock className="absolute top-1/2 left-3.5 size-4 -translate-y-1/2 text-brand-muted" />
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Masukkan kata sandi..."
+                  className="w-full rounded-lg border border-black/20 bg-brand-cream-alt py-3 pr-10 pl-10 text-base text-brand-dark outline-none placeholder:text-brand-muted focus:border-brand"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                  className="absolute top-1/2 right-3.5 -translate-y-1/2 text-brand-muted hover:text-brand-dark"
+                >
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+            </div>
+
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-brand py-3 text-base text-white shadow-sm transition hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? "Memproses..." : "Masuk ke Panel"}
+              {!loading && <ArrowRight className="size-4" />}
+            </button>
+          </form>
+
+          <div className="flex items-center justify-center gap-3 py-4 opacity-50">
+            <span className="h-px w-10 bg-brand-dark" />
+            <span className="size-1.5 rotate-45 bg-brand-dark" />
+            <span className="h-px w-10 bg-brand-dark" />
+          </div>
+
+          <div className="flex flex-col items-center gap-3">
+            <a href="#" className="text-sm text-brand underline">
+              Lupa kata sandi?
+            </a>
+            <a
+              href="#"
+              className="flex items-center gap-1 text-sm text-brand-muted hover:text-brand-dark"
+            >
+              <Phone className="size-3" />
+              Hubungi Admin Sekolah
+            </a>
+          </div>
+        </div>
+
+        <p className="text-center text-xs tracking-wider text-brand-muted opacity-70">
+          © 2024 CAKRA-AI. Hak Cipta Dilindungi.
         </p>
-
-        <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="email" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-800"
-              placeholder="guru@sekolah.sch.id"
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="password" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
-              Password
-            </label>
-            <input
-              id="password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="rounded-md border border-neutral-300 px-3 py-2 text-sm outline-none focus:border-neutral-500 dark:border-neutral-700 dark:bg-neutral-800"
-              placeholder="••••••••"
-            />
-          </div>
-
-          {error && <p className="text-sm text-red-600">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="mt-2 w-full rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 disabled:opacity-50 dark:bg-neutral-50 dark:text-neutral-900"
-          >
-            {loading ? "Memproses..." : "Masuk"}
-          </button>
-        </form>
       </div>
     </main>
   );

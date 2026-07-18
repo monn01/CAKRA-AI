@@ -64,11 +64,11 @@ export function SessionResultsPanel({
         )}
       </ResultCard>
 
-      <ResultCard icon="🗺️" title="Mind Map">
+      <ResultCard icon="🗺️" title="Peta Pikiran">
         {mindMap?.validatedAt ? (
           <InteractiveMindMap structure={mindMap.structure} height={360} />
         ) : (
-          <LoadingState label="Sedang menyiapkan mind map..." />
+          <LoadingState label="Sedang menyiapkan peta pikiran..." />
         )}
       </ResultCard>
 

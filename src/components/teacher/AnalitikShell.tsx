@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { TrendingUp, PieChart, BarChart3 } from "lucide-react";
+import { TrendingUp, PieChart, BarChart3, ChevronDown } from "lucide-react";
 import { TeacherSidebar } from "@/components/teacher/TeacherSidebar";
 import { TeacherTopBar } from "@/components/teacher/TeacherTopBar";
 import { NewSessionForm } from "@/components/dashboard/NewSessionForm";
@@ -331,30 +331,36 @@ export function AnalitikShell({
           <div className="flex flex-wrap items-end justify-between gap-4">
             <h2 className="text-3xl font-serif text-brand-dark">Dashboard Analitik</h2>
             <div className="flex flex-wrap gap-3">
-              <select
-                value={subjectFilter}
-                onChange={(e) => setSubjectFilter(e.target.value)}
-                className="rounded-full border border-black/10 bg-brand-card px-5 py-3 text-sm text-brand-dark"
-              >
-                <option value="ALL">Semua Mata Pelajaran</option>
-                {subjectOptions.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={monthFilter}
-                onChange={(e) => setMonthFilter(e.target.value)}
-                className="rounded-full border border-black/10 bg-brand-card px-5 py-3 text-sm text-brand-dark"
-              >
-                <option value="ALL">Semua Waktu</option>
-                {monthOptions.map((m) => (
-                  <option key={m} value={m}>
-                    {monthLabel(m)}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={subjectFilter}
+                  onChange={(e) => setSubjectFilter(e.target.value)}
+                  className="cursor-pointer appearance-none rounded-full border border-black/10 bg-brand-card py-3 pr-10 pl-5 text-sm text-brand-dark transition-colors duration-150 hover:border-brand/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+                >
+                  <option value="ALL">Semua Mata Pelajaran</option>
+                  {subjectOptions.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute top-1/2 right-4 size-3.5 -translate-y-1/2 text-brand-muted" />
+              </div>
+              <div className="relative">
+                <select
+                  value={monthFilter}
+                  onChange={(e) => setMonthFilter(e.target.value)}
+                  className="cursor-pointer appearance-none rounded-full border border-black/10 bg-brand-card py-3 pr-10 pl-5 text-sm text-brand-dark transition-colors duration-150 hover:border-brand/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+                >
+                  <option value="ALL">Semua Waktu</option>
+                  {monthOptions.map((m) => (
+                    <option key={m} value={m}>
+                      {monthLabel(m)}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute top-1/2 right-4 size-3.5 -translate-y-1/2 text-brand-muted" />
+              </div>
             </div>
           </div>
 

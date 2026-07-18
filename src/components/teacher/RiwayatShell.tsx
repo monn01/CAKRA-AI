@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Clock, Users, ArrowRight, Trash2 } from "lucide-react";
+import { Search, Clock, Users, ArrowRight, Trash2, ChevronDown } from "lucide-react";
 import type { SessionStatus } from "@/generated/prisma/enums";
 import { TeacherSidebar } from "@/components/teacher/TeacherSidebar";
 import { TeacherTopBar } from "@/components/teacher/TeacherTopBar";
@@ -211,34 +211,40 @@ export function RiwayatShell({
 
           <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-[rgba(219,193,185,0.3)] bg-brand-card p-4">
             <div className="flex flex-wrap gap-2">
-              <select
-                value={statusFilter}
-                onChange={(e) => {
-                  setStatusFilter(e.target.value as "ALL" | SessionStatus);
-                  setVisibleCount(PAGE_SIZE);
-                }}
-                className="rounded border border-brand-dark bg-brand-card px-4 py-2 text-xs font-semibold tracking-wide text-brand-dark"
-              >
-                {STATUS_FILTERS.map((f) => (
-                  <option key={f.value} value={f.value}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={timeFilter}
-                onChange={(e) => {
-                  setTimeFilter(e.target.value as "ALL" | "MONTH" | "WEEK");
-                  setVisibleCount(PAGE_SIZE);
-                }}
-                className="rounded border border-transparent bg-brand-card px-4 py-2 text-xs font-semibold tracking-wide text-brand-muted"
-              >
-                {TIME_FILTERS.map((f) => (
-                  <option key={f.value} value={f.value}>
-                    {f.label}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  value={statusFilter}
+                  onChange={(e) => {
+                    setStatusFilter(e.target.value as "ALL" | SessionStatus);
+                    setVisibleCount(PAGE_SIZE);
+                  }}
+                  className="cursor-pointer appearance-none rounded border border-brand-dark bg-brand-card py-2 pr-9 pl-4 text-xs font-semibold tracking-wide text-brand-dark transition-colors duration-150 hover:bg-brand-cream-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+                >
+                  {STATUS_FILTERS.map((f) => (
+                    <option key={f.value} value={f.value}>
+                      {f.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-3 -translate-y-1/2 text-brand-dark" />
+              </div>
+              <div className="relative">
+                <select
+                  value={timeFilter}
+                  onChange={(e) => {
+                    setTimeFilter(e.target.value as "ALL" | "MONTH" | "WEEK");
+                    setVisibleCount(PAGE_SIZE);
+                  }}
+                  className="cursor-pointer appearance-none rounded border border-black/10 bg-brand-card py-2 pr-9 pl-4 text-xs font-semibold tracking-wide text-brand-muted transition-colors duration-150 hover:border-brand/40 hover:bg-brand-cream-alt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
+                >
+                  {TIME_FILTERS.map((f) => (
+                    <option key={f.value} value={f.value}>
+                      {f.label}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute top-1/2 right-3 size-3 -translate-y-1/2 text-brand-muted" />
+              </div>
             </div>
 
             <div className="relative">
@@ -280,7 +286,7 @@ export function RiwayatShell({
               <button
                 type="button"
                 onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}
-                className="cursor-pointer rounded px-6 py-2 text-xs font-semibold tracking-wide text-brand transition-colors duration-150 hover:bg-brand-cream-alt"
+                className="cursor-pointer rounded border border-brand/30 px-6 py-2 text-xs font-semibold tracking-wide text-brand transition-all duration-150 hover:border-brand hover:bg-brand-cream-alt active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60"
               >
                 Muat Sesi Terdahulu
               </button>

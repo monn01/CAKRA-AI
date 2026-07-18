@@ -1,36 +1,69 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CAKRA-AI
 
-## Getting Started
+Software pendidikan inklusif berbasis AI. Menangkap suara guru secara real-time,
+mengubahnya jadi rangkuman, peta pikiran interaktif, dan kuis — langsung tampil di
+proyektor kelas, lalu bisa dibawa pulang siswa lewat kode QR. Dirancang offline-first
+(AI bisa jalan lokal lewat Ollama) supaya tetap bisa dipakai di sekolah dengan
+koneksi internet terbatas.
 
-First, run the development server:
+Landing page publik dengan detail fitur ada di halaman utama aplikasi (`/`) setelah
+dijalankan.
+
+## Prasyarat
+
+- Node.js 20+ dan npm
+- PostgreSQL (lokal atau hosted)
+- Git
+- Ollama (opsional — untuk menjalankan AI secara lokal/offline)
+
+## Instalasi Lokal
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/monn01/CAKRA-AI.git
+cd CAKRA-AI
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Salin `.env.local.example` jadi `.env.local`, lalu buat file `.env` terpisah berisi
+`DATABASE_URL` (lihat komentar di `.env.local.example` untuk detail kenapa dipisah).
+Isi juga `NEXTAUTH_SECRET` dan pilih `LLM_PROVIDER` (`ollama` untuk AI lokal, atau
+`qwen`/`openrouter` untuk API cloud).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npx prisma db push       # sinkronkan schema ke database
+npm run dev              # jalankan server dev di http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Kalau memakai Ollama untuk AI lokal, pastikan modelnya sudah diunduh:
 
-## Learn More
+```bash
+ollama serve
+ollama pull qwen2.5:7b
+```
 
-To learn more about Next.js, take a look at the following resources:
+Buat akun guru pertama lewat halaman `/register` di browser, atau lewat CLI:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm run create-teacher -- "Nama Guru" guru@sekolah.sch.id password123
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Perintah Lain yang Berguna
 
-## Deploy on Vercel
+```bash
+npx prisma studio         # GUI untuk melihat isi database
+npx prisma generate        # generate ulang Prisma client setelah pull kode baru
+npm run build              # build produksi
+npm run lint                # cek lint
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Dokumentasi Lengkap
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Detail schema database, arsitektur, dan urutan pengembangan modul ada di
+[`taskplan.md`](./taskplan.md). Panduan kerja untuk kontributor (termasuk yang
+dibantu AI coding assistant) ada di [`CLAUDE.md`](./CLAUDE.md).
+
+## Tech Stack
+
+Next.js (App Router) + TypeScript + Tailwind CSS · Prisma + PostgreSQL · Socket.IO
+(real-time) · NextAuth.js · LLM via Ollama/Qwen/OpenRouter (provider-agnostic) ·
+React Flow (peta pikiran) · `qrcode`

@@ -105,6 +105,12 @@ export default function LoginPage() {
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
               </div>
+              <Link
+                href="/forgot-password"
+                className="w-fit cursor-pointer self-end rounded-md px-1 text-sm text-brand underline transition-colors hover:text-brand/80"
+              >
+                Lupa kata sandi?
+              </Link>
             </div>
 
             {error && <p className="text-sm text-red-600">{error}</p>}
@@ -135,12 +141,6 @@ export default function LoginPage() {
                 Daftar di sini
               </Link>
             </p>
-            <Link
-              href="/forgot-password"
-              className="cursor-pointer rounded-md px-1 text-sm text-brand underline transition-colors hover:text-brand/80"
-            >
-              Lupa kata sandi?
-            </Link>
             <Link
               href="/contact-admin"
               className="flex cursor-pointer items-center gap-1 rounded-md px-1 text-sm text-brand-muted transition-colors hover:text-brand-dark"

@@ -1,16 +1,18 @@
 "use client";
 
 import { forwardRef, useMemo, useState } from "react";
-import ReactFlow, {
+import {
+  ReactFlow,
   Background,
   Controls,
   Handle,
   Position,
+  ReactFlowProvider,
   type Edge,
   type Node,
   type NodeProps,
-} from "reactflow";
-import "reactflow/dist/style.css";
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
 
 export interface MindMapNodeData {
   label: string;
@@ -114,7 +116,7 @@ function buildLayout(structure: MindMapStructure) {
   return { nodes, edges, parentOf };
 }
 
-function MindMapNodeComponent({ id, data }: NodeProps<FlowNodeData>) {
+function MindMapNodeComponent({ id, data }: NodeProps<Node<FlowNodeData>>) {
   return (
     <div
       className="rounded-lg border-l-4 bg-white px-3 py-2 text-sm shadow-sm dark:bg-neutral-900"
@@ -173,21 +175,26 @@ export const InteractiveMindMap = forwardRef<
       return false;
     }
 
-    const visibleNodes: Node<FlowNodeData>[] = baseNodes
-      .filter((n) => !isHiddenByAncestor(n.id))
-      .map((n) => ({
-        ...n,
-        data: {
-          ...n.data,
-          collapsed: collapsedIds.has(n.id),
-          onToggleCollapse: toggleCollapse,
-        },
-      }));
-
-    const visibleIds = new Set(visibleNodes.map((n) => n.id));
-    const visibleEdges = baseEdges.filter(
-      (e) => visibleIds.has(e.source) && visibleIds.has(e.target)
+    const visibleNodes: Node<FlowNodeData>[] = useMemo(
+      () =>
+        baseNodes
+          .filter((n) => !isHiddenByAncestor(n.id))
+          .map((n) => ({
+            ...n,
+            data: {
+              ...n.data,
+              collapsed: collapsedIds.has(n.id),
+              onToggleCollapse: toggleCollapse,
+            },
+          })),
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [baseNodes, collapsedIds]
     );
+
+    const visibleEdges = useMemo(() => {
+      const visibleIds = new Set(visibleNodes.map((n) => n.id));
+      return baseEdges.filter((e) => visibleIds.has(e.source) && visibleIds.has(e.target));
+    }, [baseEdges, visibleNodes]);
 
     return (
       <div className="flex flex-col gap-2">
@@ -196,19 +203,21 @@ export const InteractiveMindMap = forwardRef<
           style={{ height }}
           className="w-full rounded-lg border border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-neutral-950"
         >
-          <ReactFlow
-            nodes={visibleNodes}
-            edges={visibleEdges}
-            nodeTypes={nodeTypes}
-            onNodeClick={(_, node) =>
-              setSelected({ label: node.data.label, detail: node.data.detail })
-            }
-            fitView
-            proOptions={{ hideAttribution: true }}
-          >
-            <Background gap={16} />
-            <Controls showInteractive={false} />
-          </ReactFlow>
+          <ReactFlowProvider>
+            <ReactFlow
+              nodes={visibleNodes}
+              edges={visibleEdges}
+              nodeTypes={nodeTypes}
+              onNodeClick={(_, node) =>
+                setSelected({ label: node.data.label, detail: node.data.detail })
+              }
+              fitView
+              proOptions={{ hideAttribution: true }}
+            >
+              <Background gap={16} />
+              <Controls showInteractive={false} />
+            </ReactFlow>
+          </ReactFlowProvider>
         </div>
 
         {selected && (

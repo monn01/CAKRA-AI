@@ -49,6 +49,7 @@ export function QuizPanel({
   title,
   subject,
   grade,
+  onQuizChange,
 }: {
   sessionId: string;
   hasTranscript: boolean;
@@ -56,8 +57,16 @@ export function QuizPanel({
   title: string;
   subject: string;
   grade: string;
+  // Lapor ke parent tiap konten berubah — parent (ValidasiGuruShell) menyimpan
+  // cache supaya hasil generate tidak hilang saat panel unmount karena pindah tab.
+  onQuizChange?: (quiz: QuizData) => void;
 }) {
   const [quiz, setQuiz] = useState<QuizData | null>(initialQuiz);
+
+  function updateQuiz(next: QuizData) {
+    setQuiz(next);
+    onQuizChange?.(next);
+  }
   const [count, setCount] = useState(10);
   const [generating, setGenerating] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -89,11 +98,11 @@ export function QuizPanel({
     setGenerating(false);
 
     if (!res.ok) {
-      setError(data.error || "Gagal membuat soal quiz");
+      setError(data.error || "Gagal membuat soal kuis");
       return;
     }
 
-    setQuiz(data.quiz);
+    updateQuiz(data.quiz);
     setEditing(false);
   }
 
@@ -139,7 +148,7 @@ export function QuizPanel({
       return;
     }
 
-    setQuiz(data.quiz);
+    updateQuiz(data.quiz);
     setEditing(false);
     getSocketClient().emit("content:validated", { sessionId, type: "quiz" });
   }
@@ -163,7 +172,7 @@ export function QuizPanel({
       return;
     }
 
-    setQuiz(data.quiz);
+    updateQuiz(data.quiz);
     setConfirming(false);
     getSocketClient().emit("content:validated", { sessionId, type: "quiz" });
   }
@@ -234,11 +243,11 @@ export function QuizPanel({
     setLaunching(false);
 
     if (!res.ok) {
-      setError(data.error || "Gagal meluncurkan quiz");
+      setError(data.error || "Gagal meluncurkan kuis");
       return;
     }
 
-    setQuiz((prev) => (prev ? { ...prev, roomCode: data.quiz.roomCode, status: data.quiz.status } : prev));
+    updateQuiz({ ...quiz, roomCode: data.quiz.roomCode, status: data.quiz.status });
     getSocketClient().emit("quiz:launched", { sessionId });
   }
 

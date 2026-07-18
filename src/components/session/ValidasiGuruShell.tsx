@@ -115,6 +115,18 @@ export function ValidasiGuruShell({
   const [tab, setTab] = useState<Tab>("ringkasan");
   const [audioWarning, setAudioWarning] = useState<string | null>(null);
 
+  // Cache konten hasil generate per panel. Panel tab dirender kondisional
+  // (unmount saat pindah tab), jadi tanpa cache ini konten yang baru
+  // di-generate tapi belum divalidasi "hilang" ketika guru pindah tab lalu
+  // balik lagi — padahal datanya sudah tersimpan di DB, cuma props server
+  // (initial*) masih nilai lama saat halaman pertama dimuat.
+  const [summaryCache, setSummaryCache] = useState(initialSummary);
+  const [mindMapCache, setMindMapCache] = useState({
+    structure: initialMindMap,
+    validatedAt: initialMindMapValidatedAt,
+  });
+  const [quizCache, setQuizCache] = useState(initialQuiz);
+
   const handlerRef = useRef<SpeechHandler | null>(null);
   // Sesi yang sudah pernah mulai (mis. guru refresh halaman di tengah
   // merekam, status masih RECORDING) tidak boleh PATCH startedAt lagi —
@@ -518,10 +530,11 @@ export function ValidasiGuruShell({
             <SummaryPanel
               sessionId={sessionId}
               hasTranscript={hasTranscript}
-              initialSummary={initialSummary}
+              initialSummary={summaryCache}
               title={title}
               subject={subject}
               grade={grade}
+              onSummaryChange={(s) => setSummaryCache({ ...s, validatedAt: s.validatedAt ?? null })}
             />
           )}
 
@@ -529,9 +542,12 @@ export function ValidasiGuruShell({
             <MindMapViewer
               sessionId={sessionId}
               hasTranscript={hasTranscript}
-              initialStructure={initialMindMap}
-              initialValidatedAt={initialMindMapValidatedAt}
+              initialStructure={mindMapCache.structure}
+              initialValidatedAt={mindMapCache.validatedAt}
               title={title}
+              onMindMapChange={(structure, validatedAt) =>
+                setMindMapCache({ structure, validatedAt })
+              }
             />
           )}
 
@@ -539,10 +555,11 @@ export function ValidasiGuruShell({
             <QuizPanel
               sessionId={sessionId}
               hasTranscript={hasTranscript}
-              initialQuiz={initialQuiz}
+              initialQuiz={quizCache}
               title={title}
               subject={subject}
               grade={grade}
+              onQuizChange={(q) => setQuizCache({ ...q, validatedAt: q.validatedAt ?? null })}
             />
           )}
 

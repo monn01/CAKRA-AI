@@ -14,12 +14,16 @@ export function MindMapViewer({
   initialStructure,
   initialValidatedAt,
   title,
+  onMindMapChange,
 }: {
   sessionId: string;
   hasTranscript: boolean;
   initialStructure: MindMapStructure | null;
   initialValidatedAt?: string | null;
   title: string;
+  // Lapor ke parent tiap konten berubah — parent (ValidasiGuruShell) menyimpan
+  // cache supaya hasil generate tidak hilang saat panel unmount karena pindah tab.
+  onMindMapChange?: (structure: MindMapStructure, validatedAt: string | null) => void;
 }) {
   const [structure, setStructure] = useState<MindMapStructure | null>(initialStructure);
   const [validatedAt, setValidatedAt] = useState<string | null>(initialValidatedAt ?? null);
@@ -50,6 +54,7 @@ export function MindMapViewer({
 
     setStructure(data.mindMap.structure);
     setValidatedAt(null);
+    onMindMapChange?.(data.mindMap.structure, null);
   }
 
   async function handleValidate() {
@@ -71,6 +76,7 @@ export function MindMapViewer({
     }
 
     setValidatedAt(data.mindMap.validatedAt);
+    if (structure) onMindMapChange?.(structure, data.mindMap.validatedAt);
     getSocketClient().emit("content:validated", { sessionId, type: "mindmap" });
   }
 

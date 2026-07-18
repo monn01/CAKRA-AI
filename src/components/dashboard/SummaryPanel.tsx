@@ -22,6 +22,7 @@ export function SummaryPanel({
   title,
   subject,
   grade,
+  onSummaryChange,
 }: {
   sessionId: string;
   hasTranscript: boolean;
@@ -29,8 +30,16 @@ export function SummaryPanel({
   title: string;
   subject: string;
   grade: string;
+  // Lapor ke parent tiap konten berubah — parent (ValidasiGuruShell) menyimpan
+  // cache supaya hasil generate tidak hilang saat panel unmount karena pindah tab.
+  onSummaryChange?: (summary: SummaryData) => void;
 }) {
   const [summary, setSummary] = useState<SummaryData | null>(initialSummary);
+
+  function updateSummary(next: SummaryData) {
+    setSummary(next);
+    onSummaryChange?.(next);
+  }
   const [generating, setGenerating] = useState(false);
   const [editing, setEditing] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -61,7 +70,7 @@ export function SummaryPanel({
       return;
     }
 
-    setSummary(data.summary);
+    updateSummary(data.summary);
   }
 
   function startEditing() {
@@ -97,7 +106,7 @@ export function SummaryPanel({
       return;
     }
 
-    setSummary(data.summary);
+    updateSummary(data.summary);
     setEditing(false);
     getSocketClient().emit("content:validated", { sessionId, type: "summary" });
   }
@@ -120,7 +129,7 @@ export function SummaryPanel({
       return;
     }
 
-    setSummary(data.summary);
+    updateSummary(data.summary);
     setConfirming(false);
     getSocketClient().emit("content:validated", { sessionId, type: "summary" });
   }

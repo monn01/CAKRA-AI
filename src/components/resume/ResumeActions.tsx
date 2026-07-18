@@ -39,6 +39,11 @@ export function ResumeActions({
   const [copyFailed, setCopyFailed] = useState(false);
   const [savingPdf, setSavingPdf] = useState(false);
   const [pdfError, setPdfError] = useState(false);
+  // Tautan blob ke PDF hasil generate — unduhan otomatis (doc.save) sering
+  // gagal DIAM-DIAM di browser HP/in-app webview, jadi selalu sediakan
+  // tautan yang bisa diketuk manual sebagai jalan kedua.
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfFileName, setPdfFileName] = useState("");
 
   // URL halaman dibaca setelah mount — window tidak ada di server, dan kalau
   // dihitung saat render SSR hasilnya kosong (hydration mismatch).
@@ -168,7 +173,14 @@ export function ResumeActions({
         });
       }
 
-      doc.save(`resume-${title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.pdf`);
+      const fileName = `resume-${title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.pdf`;
+
+      // Siapkan tautan manual dulu (selalu jalan), baru coba auto-download.
+      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+      setPdfUrl(URL.createObjectURL(doc.output("blob")));
+      setPdfFileName(fileName);
+
+      doc.save(fileName);
     } catch {
       setPdfError(true);
     } finally {
@@ -216,6 +228,18 @@ export function ResumeActions({
             className="w-full rounded-lg border border-amber-200 bg-white px-2 py-1.5 font-mono text-xs text-neutral-700"
           />
         </div>
+      )}
+
+      {pdfUrl && (
+        <a
+          href={pdfUrl}
+          download={pdfFileName}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-xl border-2 border-teal-200 bg-teal-50 p-3 text-center text-xs font-bold text-teal-700 active:scale-95 transition-all"
+        >
+          📄 PDF siap! Kalau unduhan tidak mulai otomatis, ketuk di sini untuk membukanya.
+        </a>
       )}
 
       {pdfError && (

@@ -1,11 +1,11 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { toPng } from "html-to-image";
 import { InteractiveMindMap, type MindMapStructure } from "@/components/mindmap/InteractiveMindMap";
 import { QuizReview } from "@/components/resume/QuizReview";
 import { ResumeActions } from "@/components/resume/ResumeActions";
 import { SubjectBanner } from "@/components/resume/SubjectBanner";
+import { captureNodeAsPng } from "@/lib/capture-image";
 
 type GlossaryItem = { term: string; definition: string };
 type ReviewQuestion = {
@@ -44,21 +44,22 @@ export function ResumeView({
 }) {
   const mindMapRef = useRef<HTMLDivElement>(null);
   const [exportingMindMap, setExportingMindMap] = useState(false);
+  const [exportError, setExportError] = useState(false);
 
   async function handleDownloadMindMap() {
     if (!mindMapRef.current) return;
     setExportingMindMap(true);
+    setExportError(false);
     try {
-      const dataUrl = await toPng(mindMapRef.current, {
-        backgroundColor: "#ffffff",
-        pixelRatio: 2,
-      });
+      const dataUrl = await captureNodeAsPng(mindMapRef.current);
       const link = document.createElement("a");
       link.download = `mindmap-${title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.png`;
       link.href = dataUrl;
       link.click();
     } catch {
-      // best-effort; biarkan pengguna coba lagi kalau gagal
+      // Browser tertentu (HP/webview) memblokir unduhan otomatis <a download> —
+      // beri tahu jujur daripada diam, bukan cuma gambar gagal di-generate.
+      setExportError(true);
     } finally {
       setExportingMindMap(false);
     }
@@ -135,6 +136,12 @@ export function ResumeView({
             </button>
           )}
         </div>
+        {exportError && (
+          <p className="text-xs font-bold text-amber-600">
+            Gagal mengunduh gambar peta pikiran di browser ini. Coba tekan lama pada peta pikiran
+            lalu pilih &quot;Simpan gambar&quot;, atau gunakan tombol Simpan PDF di atas.
+          </p>
+        )}
         {mindMap ? (
           <InteractiveMindMap ref={mindMapRef} structure={mindMap} height={320} />
         ) : (

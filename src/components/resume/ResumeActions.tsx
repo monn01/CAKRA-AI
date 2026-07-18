@@ -2,7 +2,7 @@
 
 import { type RefObject, useEffect, useState } from "react";
 import { jsPDF } from "jspdf";
-import { toPng } from "html-to-image";
+import { captureNodeAsPng } from "@/lib/capture-image";
 
 type GlossaryItem = { term: string; definition: string };
 type ReviewQuestion = {
@@ -144,10 +144,7 @@ export function ResumeActions({
 
       if (mindMapRef?.current) {
         try {
-          const dataUrl = await toPng(mindMapRef.current, {
-            backgroundColor: "#ffffff",
-            pixelRatio: 2,
-          });
+          const dataUrl = await captureNodeAsPng(mindMapRef.current);
           const { width: elW, height: elH } = mindMapRef.current.getBoundingClientRect();
           const imgHeight = (elH / elW) * pageWidth;
 

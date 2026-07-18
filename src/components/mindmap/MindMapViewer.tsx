@@ -1,12 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { toPng } from "html-to-image";
 import { jsPDF } from "jspdf";
 import { motion } from "framer-motion";
 import { InteractiveMindMap, type MindMapStructure } from "@/components/mindmap/InteractiveMindMap";
 import { Button } from "@/components/ui/Button";
 import { getSocketClient } from "@/lib/socket/client";
+import { captureNodeAsPng } from "@/lib/capture-image";
 
 export function MindMapViewer({
   sessionId,
@@ -84,10 +84,7 @@ export function MindMapViewer({
     if (!canvasRef.current) return;
     setExporting(true);
     try {
-      const dataUrl = await toPng(canvasRef.current, {
-        backgroundColor: "#ffffff",
-        pixelRatio: 2,
-      });
+      const dataUrl = await captureNodeAsPng(canvasRef.current);
       const link = document.createElement("a");
       link.download = `mindmap-${sessionId}.png`;
       link.href = dataUrl;
@@ -103,10 +100,7 @@ export function MindMapViewer({
     if (!canvasRef.current) return;
     setPrinting(true);
     try {
-      const dataUrl = await toPng(canvasRef.current, {
-        backgroundColor: "#ffffff",
-        pixelRatio: 2,
-      });
+      const dataUrl = await captureNodeAsPng(canvasRef.current);
       const img = new Image();
       img.src = dataUrl;
       await new Promise((resolve) => {

@@ -50,6 +50,8 @@ export function ValidasiGuruShell({
   quizResults,
   qrDataUrl,
   dateLabel,
+  notifySessionComplete,
+  notifyAudioQuality,
 }: {
   sessionId: string;
   title: string;
@@ -96,6 +98,8 @@ export function ValidasiGuruShell({
   } | null;
   qrDataUrl: string;
   dateLabel: string;
+  notifySessionComplete: boolean;
+  notifyAudioQuality: boolean;
 }) {
   const [recordingState, setRecordingState] = useState<RecordingState>(
     initialStatus === "COMPLETED" || initialStatus === "PROCESSING" ? "ended" : "idle"
@@ -109,10 +113,17 @@ export function ValidasiGuruShell({
   const [displayMode, setDisplayMode] = useState<"caption" | "full">("caption");
   const [slideIndex, setSlideIndex] = useState(0);
   const [tab, setTab] = useState<Tab>("ringkasan");
+  const [audioWarning, setAudioWarning] = useState<string | null>(null);
 
   const handlerRef = useRef<SpeechHandler | null>(null);
   const startedRef = useRef(false);
   const feedEndRef = useRef<HTMLDivElement>(null);
+  const audioMonitorRef = useRef<{
+    context: AudioContext;
+    analyser: AnalyserNode;
+    stream: MediaStream;
+    interval: ReturnType<typeof setInterval>;
+  } | null>(null);
 
   useEffect(() => {
     const socket = getSocketClient();
@@ -127,8 +138,61 @@ export function ValidasiGuruShell({
     feedEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chunks]);
 
+  useEffect(() => {
+    if (notifySessionComplete && typeof Notification !== "undefined" && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+    return () => stopAudioMonitor();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function pushChunk(text: string) {
     setChunks((prev) => [...prev, { id: `local-${Date.now()}`, text, timestamp: Date.now() }]);
+  }
+
+  async function startAudioMonitor() {
+    if (!notifyAudioQuality || audioMonitorRef.current) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const context = new AudioContext();
+      const source = context.createMediaStreamSource(stream);
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 512;
+      source.connect(analyser);
+
+      const data = new Uint8Array(analyser.frequencyBinCount);
+      let quietStreak = 0;
+
+      const interval = setInterval(() => {
+        analyser.getByteTimeDomainData(data);
+        const rms = Math.sqrt(
+          data.reduce((sum, v) => sum + ((v - 128) / 128) ** 2, 0) / data.length
+        );
+        if (rms < 0.02) {
+          quietStreak += 1;
+          if (quietStreak >= 4) {
+            setAudioWarning("Suara kelas terlalu pelan, coba dekatkan mikrofon ke guru.");
+          }
+        } else {
+          quietStreak = 0;
+          setAudioWarning(null);
+        }
+      }, 2000);
+
+      audioMonitorRef.current = { context, analyser, stream, interval };
+    } catch {
+      // gagal akses mikrofon buat monitor kualitas audio — bukan fatal, fitur ini opsional
+    }
+  }
+
+  function stopAudioMonitor() {
+    const monitor = audioMonitorRef.current;
+    if (!monitor) return;
+    clearInterval(monitor.interval);
+    monitor.stream.getTracks().forEach((t) => t.stop());
+    monitor.context.close();
+    audioMonitorRef.current = null;
+    setAudioWarning(null);
   }
 
   async function handleStart() {
@@ -157,6 +221,7 @@ export function ValidasiGuruShell({
 
     handlerRef.current.start("id-ID");
     setRecordingState("recording");
+    startAudioMonitor();
 
     if (!startedRef.current) {
       startedRef.current = true;
@@ -171,16 +236,19 @@ export function ValidasiGuruShell({
   function handlePause() {
     handlerRef.current?.pause();
     setRecordingState("paused");
+    stopAudioMonitor();
   }
 
   function handleResume() {
     handlerRef.current?.resume();
     setRecordingState("recording");
+    startAudioMonitor();
   }
 
   async function handleEnd() {
     handlerRef.current?.stop();
     setRecordingState("ended");
+    stopAudioMonitor();
 
     const socket = getSocketClient();
     socket.emit("session:end", { sessionId });
@@ -190,6 +258,10 @@ export function ValidasiGuruShell({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: "PROCESSING", endedAt: new Date().toISOString() }),
     });
+
+    if (notifySessionComplete && typeof Notification !== "undefined" && Notification.permission === "granted") {
+      new Notification("Sesi selesai direkam", { body: title });
+    }
   }
 
   async function handleSaveCorrection() {
@@ -334,6 +406,11 @@ export function ValidasiGuruShell({
 
         <div className="flex flex-col gap-2 border-t border-black/10 p-4">
           {error && <p className="text-xs text-red-600">{error}</p>}
+          {audioWarning && (
+            <p className="rounded-lg bg-amber-100 px-3 py-2 text-xs font-medium text-amber-700">
+              ⚠️ {audioWarning}
+            </p>
+          )}
 
           <div className="flex gap-2">
             {recordingState === "idle" && (

@@ -27,6 +27,7 @@ export default async function SessionDetailPage({
         take: 1,
         include: { questions: { orderBy: { order: "asc" } } },
       },
+      teacher: { select: { notifySessionComplete: true, notifyAudioQuality: true } },
     },
   });
   if (!teachingSession || teachingSession.teacherId !== (session.user as { id: string }).id) {
@@ -100,6 +101,8 @@ export default async function SessionDetailPage({
       quizResults={quizResults}
       qrDataUrl={qrDataUrl}
       dateLabel={dateLabel}
+      notifySessionComplete={teachingSession.teacher.notifySessionComplete}
+      notifyAudioQuality={teachingSession.teacher.notifyAudioQuality}
     />
   );
 }

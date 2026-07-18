@@ -28,27 +28,23 @@ export function DisplayPreferences() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
-        <label className="text-sm text-neutral-700 dark:text-neutral-300">
-          Jumlah soal default saat generate quiz
-        </label>
+        <label className="text-sm text-brand-dark">Jumlah soal default saat membuat kuis</label>
         <input
           type="number"
           min={5}
           max={15}
           value={count}
           onChange={(e) => setCount(Number(e.target.value))}
-          className="w-16 rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+          className="w-16 rounded border border-black/20 bg-brand-cream-alt px-2 py-1 text-sm text-brand-dark"
         />
       </div>
 
       <div className="flex items-center justify-between">
-        <label className="text-sm text-neutral-700 dark:text-neutral-300">
-          Batas waktu default per soal
-        </label>
+        <label className="text-sm text-brand-dark">Batas waktu default per soal</label>
         <select
           value={timeLimit}
           onChange={(e) => setTimeLimit(Number(e.target.value))}
-          className="rounded-md border border-neutral-300 px-2 py-1 text-sm dark:border-neutral-700 dark:bg-neutral-800"
+          className="cursor-pointer rounded border border-black/20 bg-brand-cream-alt px-2 py-1 text-sm text-brand-dark"
         >
           <option value={15}>15 detik</option>
           <option value={30}>30 detik</option>
@@ -58,13 +54,13 @@ export function DisplayPreferences() {
 
       <button
         onClick={handleSave}
-        className="w-fit rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 dark:bg-neutral-50 dark:text-neutral-900"
+        className="w-fit cursor-pointer rounded bg-brand-dark px-4 py-2 text-sm font-medium text-white transition-all duration-150 hover:bg-brand-dark/85 active:scale-[0.97]"
       >
         {saved ? "Tersimpan!" : "Simpan Preferensi"}
       </button>
-      <p className="text-xs text-neutral-400">
-        Preferensi disimpan di perangkat ini dan dipakai sebagai nilai awal saat generate quiz
-        atau meluncurkan sesi quiz baru.
+      <p className="text-xs text-brand-muted">
+        Preferensi disimpan di perangkat ini dan dipakai sebagai nilai awal saat membuat kuis atau
+        meluncurkan sesi kuis baru.
       </p>
     </div>
   );

@@ -72,7 +72,7 @@ export function RingkasanShell({
             <button
               type="button"
               onClick={() => setShowNewSession(true)}
-              className="relative shrink-0 rounded-lg bg-brand px-6 py-3 text-base font-bold text-white shadow-sm hover:bg-brand/90"
+              className="relative cursor-pointer shrink-0 rounded-lg bg-brand px-6 py-3 text-base font-bold text-white shadow-sm transition-all duration-150 hover:bg-brand/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:ring-offset-2"
             >
               + Sesi Baru
             </button>
@@ -162,7 +162,7 @@ export function RingkasanShell({
                         </div>
                         <Link
                           href={`/session/${item.sessionId}`}
-                          className="shrink-0 rounded border border-black/20 px-4 py-2 text-sm font-medium text-brand-dark hover:bg-brand-cream-alt"
+                          className="shrink-0 cursor-pointer rounded border border-black/20 px-4 py-2 text-sm font-medium text-brand-dark transition-colors duration-150 hover:bg-brand-cream-alt"
                         >
                           Buka
                         </Link>
@@ -174,7 +174,7 @@ export function RingkasanShell({
 
               <Link
                 href="/riwayat"
-                className="py-3 text-center text-sm font-medium text-brand-muted hover:text-brand-dark"
+                className="cursor-pointer rounded-md py-3 text-center text-sm font-medium text-brand-muted transition-colors duration-150 hover:bg-black/5 hover:text-brand-dark"
               >
                 Lihat Semua Riwayat
               </Link>

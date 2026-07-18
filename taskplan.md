@@ -76,12 +76,32 @@ Software pendidikan inklusif berbasis AI. Menangkap suara guru real-time → tek
 
 ```prisma
 model Teacher {
-  id        String    @id @default(cuid())
+  id                     String    @id @default(cuid())
+  name                   String
+  email                  String    @unique
+  password               String
+  school                 String?   // Instansi pendidikan — kartu "Informasi Pribadi" di Pengaturan (Fase 7)
+  mainSubject            String?   // Mapel utama — kartu "Informasi Pribadi" di Pengaturan (Fase 7)
+  notifySessionComplete  Boolean   @default(true)  // Preferensi Notifikasi: notifikasi browser saat sesi selesai
+  notifyAudioQuality     Boolean   @default(false) // Preferensi Notifikasi: monitor volume mic saat merekam
+  notifySystemUpdates    Boolean   @default(true)  // Preferensi Notifikasi: banner versi baru CAKRA-AI
+  lastSeenAppVersion     String?   // dibanding dengan versi package.json buat trigger banner update
+  sessions               Session[]
+  createdAt              DateTime  @default(now())
+}
+
+// Permintaan reset kata sandi (halaman Lupa Kata Sandi) & kontak admin sekolah
+// (halaman Hubungi Admin Sekolah). Tidak direlasikan ke Teacher (form ini juga
+// dipakai orang yang belum/gagal login). Admin sekolah menindaklanjuti manual
+// lewat `npx prisma studio` — tidak ada panel admin terpisah, sengaja disederhanakan.
+model SupportRequest {
+  id        String   @id @default(cuid())
+  type      String   // "RESET_PASSWORD" | "GENERAL"
   name      String
-  email     String    @unique
-  password  String
-  sessions  Session[]
-  createdAt DateTime  @default(now())
+  email     String
+  message   String?
+  status    String   @default("BARU") // BARU | DIPROSES | SELESAI
+  createdAt DateTime @default(now())
 }
 
 model Session {
@@ -317,6 +337,8 @@ enum QuizStatus {
 - Fix lint: ESLint rule baru `react-hooks/set-state-in-effect` menandai pembacaan `localStorage` di dalam `useEffect` sebagai anti-pattern. Pola ini tetap dipertahankan (bukan diganti lazy initializer di `useState`) karena itu justru pola yang BENAR untuk menghindari hydration mismatch SSR (server tidak punya akses `localStorage`) — di-suppress dengan komentar `eslint-disable-next-line` yang menjelaskan alasannya di satu baris spesifik saja.
 - Verifikasi: `npm run build` ✅, `npm run lint` ✅, smoke test manual — `curl` ke `/live/[sessionId-tidak-ada]` mengembalikan `500` (wajar, karena query Prisma gagal tanpa DB), tapi dikonfirmasi server tidak crash dan route lain tetap sehat.
 - **⚠️ Blocker sama**: belum bisa dites end-to-end dengan data transkrip sungguhan karena tidak ada DB aktif di environment ini.
+- **Update 18/07/2026 — caption cuma update per kalimat utuh, interim mentah diabaikan total**: perbaikan `sentenceBuffer` di `speech-handler.ts` (17/07/2026) ternyata belum cukup — `LiveDisplay.tsx` masih nampilin event interim (`isFinal: false`) live lewat `interimLine`/`TypewriterText`, jadi buat guru yang ngomong cepat, baris aktif di proyektor tetap keliatan "ganti kata demi kata" ngejar ritme bicara asli, bikin anak SD nggak sempat baca. Uji coba lapangan kedua (18/07/2026) mengonfirmasi ini. Fix: `handleTranscriptUpdate` di `LiveDisplay.tsx` sekarang **mengabaikan total event `isFinal: false`** — cuma `completedLines` (array kalimat utuh dari sentence-buffer) yang dipakai. Elemen terakhir jadi "baris aktif" (terang, diketik `TypewriterText` di kecepatan tetap 36ms/karakter — bukan ngikutin kecepatan bicara asli), sisanya jadi riwayat redup. Hasilnya: layar diam sampai satu kalimat utuh selesai, baru muncul sekali dengan animasi ketik yang tenang — beneran kayak subtitle film, bukan live word-by-word. Diverifikasi manual dengan simulasi socket (kirim event interim cepat lalu satu event final) — dikonfirmasi baris aktif tidak berubah sama sekali sampai event final tiba.
+- **Revisi 18/07/2026 (sore) — interim dikembalikan ke live, "koreksi" cuma pas kalimat naik ke riwayat**: user uji coba lagi dan bilang delay-nya (nunggu diam total sampai kalimat kelar) kerasa kelamaan. Yang sebenarnya diinginkan bukan "sembunyikan semua sampai final", tapi: baris aktif tetap tumbuh **real-time** kata demi kata selagi guru ngomong (jangan ada delay), dan baris itu cuma "dikoreksi"/dikunci final lalu pindah ke riwayat redup **sekali per kalimat utuh** (bukan sekali per kata) — pengelompokan per-kalimat tetap dari `sentenceBuffer` di `speech-handler.ts`, cuma titik penerapannya beda. Revert `LiveDisplay.tsx` balik ke pola awal Module 4: `finalLines`/`interimLine` terpisah, `isFinal: false` di-set ke `interimLine` langsung (live, ngikutin `TypewriterText` yang otomatis nyambung dari posisi terakhir), `isFinal: true` push ke `finalLines` (slice -2) & clear interim. Diverifikasi manual via simulasi socket yang sama: interim tumbuh real-time tanpa delay, lalu pas event final tiba, teks langsung terkunci & pindah ke riwayat redup dengan baris aktif baru mulai dari kosong.
 
 ---
 

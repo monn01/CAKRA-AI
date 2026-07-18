@@ -13,12 +13,28 @@ datasource db {
 }
 
 model Teacher {
-  id        String    @id @default(cuid())
+  id                     String    @id @default(cuid())
+  name                   String
+  email                  String    @unique
+  password               String
+  school                 String?
+  mainSubject            String?
+  notifySessionComplete  Boolean   @default(true)
+  notifyAudioQuality     Boolean   @default(false)
+  notifySystemUpdates    Boolean   @default(true)
+  lastSeenAppVersion     String?
+  sessions               Session[]
+  createdAt              DateTime  @default(now())
+}
+
+model SupportRequest {
+  id        String   @id @default(cuid())
+  type      String
   name      String
-  email     String    @unique
-  password  String
-  sessions  Session[]
-  createdAt DateTime  @default(now())
+  email     String
+  message   String?
+  status    String   @default("BARU")
+  createdAt DateTime @default(now())
 }
 
 model Session {

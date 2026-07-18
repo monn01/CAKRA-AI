@@ -1,6 +1,6 @@
 "use client";
 
-import { type RefObject, useState } from "react";
+import { type RefObject, useEffect, useState } from "react";
 import { jsPDF } from "jspdf";
 import { toPng } from "html-to-image";
 
@@ -36,25 +36,66 @@ export function ResumeActions({
   mindMapRef: RefObject<HTMLDivElement | null> | null;
 }) {
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
   const [savingPdf, setSavingPdf] = useState(false);
+  const [pdfError, setPdfError] = useState(false);
 
-  function shareUrl() {
-    return typeof window !== "undefined" ? window.location.href : "";
-  }
+  // URL halaman dibaca setelah mount — window tidak ada di server, dan kalau
+  // dihitung saat render SSR hasilnya kosong (hydration mismatch).
+  const [pageUrl, setPageUrl] = useState("");
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPageUrl(window.location.href);
+  }, []);
 
-  function handleShareWhatsApp() {
-    const text = `Rangkuman pembelajaran: ${title} (${subject})\n${shareUrl()}`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
-  }
+  const waHref = pageUrl
+    ? `https://wa.me/?text=${encodeURIComponent(`Rangkuman pembelajaran: ${title} (${subject})\n${pageUrl}`)}`
+    : undefined;
 
   async function handleCopyLink() {
-    await navigator.clipboard.writeText(shareUrl());
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const url = pageUrl || window.location.href;
+    let ok = false;
+
+    // Clipboard API cuma tersedia di secure context (HTTPS/localhost) —
+    // halaman ini sering dibuka HP lewat http://IP-LAN hasil scan QR, jadi
+    // wajib punya fallback, bukan langsung crash.
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        ok = true;
+      }
+    } catch {
+      // lanjut ke fallback legacy di bawah
+    }
+
+    if (!ok) {
+      try {
+        const textarea = document.createElement("textarea");
+        textarea.value = url;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.select();
+        ok = document.execCommand("copy");
+        textarea.remove();
+      } catch {
+        ok = false;
+      }
+    }
+
+    if (ok) {
+      setCopyFailed(false);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } else {
+      // Tampilkan URL-nya supaya tetap bisa disalin manual.
+      setCopyFailed(true);
+    }
   }
 
   async function handleSavePDF() {
     setSavingPdf(true);
+    setPdfError(false);
     try {
       const doc = new jsPDF();
       const marginX = 15;
@@ -128,32 +169,60 @@ export function ResumeActions({
       }
 
       doc.save(`resume-${title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.pdf`);
+    } catch {
+      setPdfError(true);
     } finally {
       setSavingPdf(false);
     }
   }
 
   return (
-    <div className="flex gap-2">
-      <button
-        onClick={handleShareWhatsApp}
-        className="flex-1 rounded-full bg-emerald-600 px-4 py-3 text-sm font-black text-white hover:bg-emerald-500 shadow-md active:scale-95 transition-all cursor-pointer"
-      >
-        WhatsApp 💬
-      </button>
-      <button
-        onClick={handleCopyLink}
-        className="flex-1 rounded-full border-2 border-primary/20 bg-white px-4 py-3 text-sm font-black text-primary hover:bg-sky-50 shadow-md active:scale-95 transition-all cursor-pointer"
-      >
-        {copied ? "Tersalin! ✨" : "Salin Tautan 🔗"}
-      </button>
-      <button
-        onClick={handleSavePDF}
-        disabled={savingPdf}
-        className="flex-1 rounded-full border-2 border-primary/20 bg-white px-4 py-3 text-sm font-black text-primary hover:bg-sky-50 shadow-md active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
-      >
-        {savingPdf ? "Menyimpan... ⏳" : "Simpan PDF 📂"}
-      </button>
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-2">
+        {/* Tautan <a> asli, bukan window.open — window.open sering diblokir
+            in-app browser HP (pembuka QR bawaan kamera, browser WhatsApp). */}
+        <a
+          href={waHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-1 items-center justify-center rounded-full bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white hover:bg-emerald-500 shadow-md active:scale-95 transition-all cursor-pointer"
+        >
+          WhatsApp 💬
+        </a>
+        <button
+          onClick={handleCopyLink}
+          className="flex-1 rounded-full border-2 border-primary/20 bg-white px-4 py-3 text-sm font-black text-primary hover:bg-sky-50 shadow-md active:scale-95 transition-all cursor-pointer"
+        >
+          {copied ? "Tersalin! ✨" : "Salin Tautan 🔗"}
+        </button>
+        <button
+          onClick={handleSavePDF}
+          disabled={savingPdf}
+          className="flex-1 rounded-full border-2 border-primary/20 bg-white px-4 py-3 text-sm font-black text-primary hover:bg-sky-50 shadow-md active:scale-95 transition-all disabled:opacity-50 cursor-pointer"
+        >
+          {savingPdf ? "Menyimpan... ⏳" : "Simpan PDF 📂"}
+        </button>
+      </div>
+
+      {copyFailed && (
+        <div className="flex flex-col gap-1 rounded-xl border-2 border-amber-200 bg-amber-50 p-3">
+          <p className="text-xs font-bold text-amber-700">
+            Browser ini tidak mengizinkan salin otomatis — salin manual tautan di bawah ya:
+          </p>
+          <input
+            readOnly
+            value={pageUrl}
+            onFocus={(e) => e.target.select()}
+            className="w-full rounded-lg border border-amber-200 bg-white px-2 py-1.5 font-mono text-xs text-neutral-700"
+          />
+        </div>
+      )}
+
+      {pdfError && (
+        <p className="rounded-xl border-2 border-amber-200 bg-amber-50 p-3 text-xs font-bold text-amber-700">
+          Gagal menyimpan PDF di browser ini. Coba buka halaman ini di Chrome/Safari lalu ulangi.
+        </p>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Nunito } from "next/font/google";
 import { AuthProvider } from "@/components/AuthProvider";
+import { ServiceWorkerCleanup } from "@/components/ServiceWorkerCleanup";
 import "./globals.css";
 
 const nunito = Nunito({
@@ -26,6 +27,7 @@ export default function RootLayout({
       className={`${nunito.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        <ServiceWorkerCleanup />
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

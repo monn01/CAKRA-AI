@@ -271,5 +271,3 @@ button:not([class*="react-flow"]):active:not(:disabled) {
   animation-iteration-count: infinite;
 }
 
-
-

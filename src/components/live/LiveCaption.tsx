@@ -1,4 +1,3 @@
-import { Mic } from "lucide-react";
 import { TypewriterText } from "@/components/live/TypewriterText";
 
 export function LiveCaption({
@@ -29,12 +28,6 @@ export function LiveCaption({
           className={`mx-auto max-w-5xl text-center font-medium ${activeClass}`}
           style={{ lineHeight: 1.6 }}
         >
-          {!light && (
-            <p className="mb-3 flex items-center justify-center gap-2 text-sm tracking-[0.2em] text-white/50 uppercase">
-              <Mic className="size-3.5" />
-              Penjelasan Guru
-            </p>
-          )}
           {finalLines.map((line, i) => (
             <p
               key={i}

@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Standalone Next.js project with its own eslint config — deployed
+    // separately to Vercel, not part of this app's lint/build.
+    "website/**",
   ]),
 ]);
 

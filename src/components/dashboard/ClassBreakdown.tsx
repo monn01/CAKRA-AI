@@ -1,3 +1,4 @@
+
 type ClassGroup = { subject: string; grade: string; count: number };
 
 export function ClassBreakdown({ groups }: { groups: ClassGroup[] }) {

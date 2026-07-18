@@ -1,5 +1,6 @@
-// Buat/update akun guru — dipakai karena aplikasi ini sengaja tidak punya
-// halaman signup (lihat taskplan.md Modul 1). Jalankan:
+// Buat/update akun guru lewat CLI — alternatif buat admin sekolah yang mau
+// provisioning akun tanpa lewat halaman /register (mis. bikin banyak akun
+// sekaligus, atau reset password manual). Jalankan:
 //
 //   node scripts/create-teacher.mjs "Nama Guru" guru@sekolah.sch.id password123
 //

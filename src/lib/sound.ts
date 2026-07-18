@@ -1,5 +1,13 @@
+// Browser lama (WebView Android jadul di sekolah 3T) masih pakai prefix webkit.
+type WindowWithWebkitAudio = Window & { webkitAudioContext?: typeof AudioContext };
+
 class SoundManager {
   private isMuted: boolean = false;
+  // SATU AudioContext dipakai ulang untuk semua suara. Chrome membatasi
+  // ±6 AudioContext per halaman — kalau bikin context baru tiap play
+  // (playCorrect saja butuh 4 nada), limit kelewat setelah 1-2 soal kuis
+  // dan semua suara mati diam-diam karena constructor-nya throw.
+  private ctx: AudioContext | null = null;
 
   constructor() {
     if (typeof window !== "undefined") {
@@ -18,6 +26,21 @@ class SoundManager {
     }
   }
 
+  private getContext(): AudioContext | null {
+    if (typeof window === "undefined") return null;
+    if (!this.ctx) {
+      const Ctor = window.AudioContext || (window as WindowWithWebkitAudio).webkitAudioContext;
+      if (!Ctor) return null;
+      this.ctx = new Ctor();
+    }
+    // Autoplay policy bisa menaruh context di state "suspended" sampai ada
+    // gesture user — resume di sini (dipanggil dari handler klik) membangunkannya.
+    if (this.ctx.state === "suspended") {
+      this.ctx.resume().catch(() => {});
+    }
+    return this.ctx;
+  }
+
   private playTone(
     freq: number,
     type: OscillatorType,
@@ -25,11 +48,10 @@ class SoundManager {
     startTimeOffset: number = 0,
     volume: number = 0.1
   ) {
-    if (this.isMuted || typeof window === "undefined") return;
+    if (this.isMuted) return;
     try {
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioContext) return;
-      const ctx = new AudioContext();
+      const ctx = this.getContext();
+      if (!ctx) return;
 
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -46,6 +68,11 @@ class SoundManager {
 
       osc.start(ctx.currentTime + startTimeOffset);
       osc.stop(ctx.currentTime + startTimeOffset + duration);
+      // Lepas node setelah selesai supaya graph audio tidak numpuk.
+      osc.onended = () => {
+        osc.disconnect();
+        gain.disconnect();
+      };
     } catch {
       // Best-effort
     }
@@ -53,11 +80,10 @@ class SoundManager {
 
   playPop() {
     // Bubble pop: fast frequency sweep upwards
-    if (this.isMuted || typeof window === "undefined") return;
+    if (this.isMuted) return;
     try {
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioContext) return;
-      const ctx = new AudioContext();
+      const ctx = this.getContext();
+      if (!ctx) return;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
@@ -73,6 +99,10 @@ class SoundManager {
 
       osc.start();
       osc.stop(ctx.currentTime + 0.08);
+      osc.onended = () => {
+        osc.disconnect();
+        gain.disconnect();
+      };
     } catch {
       // Best-effort
     }
@@ -88,11 +118,10 @@ class SoundManager {
 
   playIncorrect() {
     // Incorrect: descending buzz
-    if (this.isMuted || typeof window === "undefined") return;
+    if (this.isMuted) return;
     try {
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioContext) return;
-      const ctx = new AudioContext();
+      const ctx = this.getContext();
+      if (!ctx) return;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
 
@@ -108,6 +137,10 @@ class SoundManager {
 
       osc.start();
       osc.stop(ctx.currentTime + 0.25);
+      osc.onended = () => {
+        osc.disconnect();
+        gain.disconnect();
+      };
     } catch {
       // Best-effort
     }

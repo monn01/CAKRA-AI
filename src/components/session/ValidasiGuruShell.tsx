@@ -116,7 +116,11 @@ export function ValidasiGuruShell({
   const [audioWarning, setAudioWarning] = useState<string | null>(null);
 
   const handlerRef = useRef<SpeechHandler | null>(null);
-  const startedRef = useRef(false);
+  // Sesi yang sudah pernah mulai (mis. guru refresh halaman di tengah
+  // merekam, status masih RECORDING) tidak boleh PATCH startedAt lagi —
+  // kalau di-PATCH ulang, waktu mulai asli tertimpa dan statistik durasi
+  // mengajar di Riwayat/Analitik jadi salah.
+  const startedRef = useRef(initialStatus !== "IDLE");
   const feedEndRef = useRef<HTMLDivElement>(null);
   const audioMonitorRef = useRef<{
     context: AudioContext;

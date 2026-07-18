@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { GraduationCap, User, Lock, Eye, EyeOff, ArrowRight, Phone } from "lucide-react";
 
 export default function LoginPage() {
@@ -99,7 +100,7 @@ export default function LoginPage() {
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
-                  className="absolute top-1/2 right-3.5 -translate-y-1/2 text-brand-muted hover:text-brand-dark"
+                  className="absolute top-1/2 right-3.5 -translate-y-1/2 cursor-pointer text-brand-muted transition-colors hover:text-brand-dark"
                 >
                   {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
                 </button>
@@ -111,7 +112,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-brand py-3 text-base text-white shadow-sm transition hover:bg-brand/90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-2 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-brand py-3 text-base text-white shadow-sm transition-all duration-150 hover:bg-brand/90 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/60 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading ? "Memproses..." : "Masuk ke Panel"}
               {!loading && <ArrowRight className="size-4" />}
@@ -125,16 +126,19 @@ export default function LoginPage() {
           </div>
 
           <div className="flex flex-col items-center gap-3">
-            <a href="#" className="text-sm text-brand underline">
+            <Link
+              href="/forgot-password"
+              className="cursor-pointer rounded-md px-1 text-sm text-brand underline transition-colors hover:text-brand/80"
+            >
               Lupa kata sandi?
-            </a>
-            <a
-              href="#"
-              className="flex items-center gap-1 text-sm text-brand-muted hover:text-brand-dark"
+            </Link>
+            <Link
+              href="/contact-admin"
+              className="flex cursor-pointer items-center gap-1 rounded-md px-1 text-sm text-brand-muted transition-colors hover:text-brand-dark"
             >
               <Phone className="size-3" />
               Hubungi Admin Sekolah
-            </a>
+            </Link>
           </div>
         </div>
 

@@ -360,11 +360,17 @@ export function QuizPanel({
             />
           )}
 
-          {!quiz.roomCode && (
-            <Button variant="primary" size="md" onClick={handleLaunch} disabled={launching} className="w-fit">
-              {launching ? "Meluncurkan..." : "Luncurkan Kuis"}
-            </Button>
-          )}
+          {!quiz.roomCode &&
+            (isValidated ? (
+              <Button variant="primary" size="md" onClick={handleLaunch} disabled={launching} className="w-fit">
+                {launching ? "Meluncurkan..." : "Luncurkan Kuis"}
+              </Button>
+            ) : (
+              // Aturan produk: soal harus divalidasi guru dulu sebelum tampil ke siswa.
+              <p className="w-fit rounded-lg bg-brand-cream-alt px-3 py-2 text-sm text-brand-muted">
+                ✅ Validasi soal terlebih dahulu untuk bisa meluncurkan kuis ke siswa.
+              </p>
+            ))}
 
           <div className="flex items-center justify-between">
             <p className="text-sm text-brand-muted">{quiz.questions.length} soal</p>

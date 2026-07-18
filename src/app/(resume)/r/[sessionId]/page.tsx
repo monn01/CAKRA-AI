@@ -42,6 +42,13 @@ export default async function ResumePage({
       explanation: q.explanation,
     })) ?? [];
 
+  // Halaman ini publik (QR dibagikan ke orang tua) — konten AI hanya boleh
+  // tampil setelah guru memvalidasinya, sama seperti gerbang validatedAt di
+  // layar proyektor. Yang belum divalidasi diperlakukan seolah belum ada
+  // (ResumeView sudah punya pesan "belum siap" yang jujur).
+  const validatedSummary = session.summary?.validatedAt ? session.summary : null;
+  const validatedMindMap = session.mindMap?.validatedAt ? session.mindMap : null;
+
   return (
     <ResumeView
       title={session.title}
@@ -49,10 +56,10 @@ export default async function ResumePage({
       grade={session.grade}
       dateLabel={dateLabel}
       teacherName={session.teacher.name}
-      summaryContent={session.summary?.content ?? null}
-      keyPoints={(session.summary?.keyPoints as string[] | null) ?? []}
-      glossary={(session.summary?.glossary as { term: string; definition: string }[] | null) ?? []}
-      mindMap={session.mindMap ? (session.mindMap.structure as unknown as MindMapStructure) : null}
+      summaryContent={validatedSummary?.content ?? null}
+      keyPoints={(validatedSummary?.keyPoints as string[] | null) ?? []}
+      glossary={(validatedSummary?.glossary as { term: string; definition: string }[] | null) ?? []}
+      mindMap={validatedMindMap ? (validatedMindMap.structure as unknown as MindMapStructure) : null}
       questions={questions}
       pptUrl={session.pptUrl}
       pptName={session.pptName}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ArrowLeft, Play, Pause, Square, Mic } from "lucide-react";
 import { SpeechHandler } from "@/lib/stt/speech-handler";
 import { getSocketClient } from "@/lib/socket/client";
+import { preferredAudioConstraint } from "@/lib/mic-preference";
 import { Button } from "@/components/ui/Button";
 import { SummaryPanel } from "@/components/dashboard/SummaryPanel";
 import { MindMapViewer } from "@/components/mindmap/MindMapViewer";
@@ -169,7 +170,8 @@ export function ValidasiGuruShell({
   async function startAudioMonitor() {
     if (!notifyAudioQuality || audioMonitorRef.current) return;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Menghormati mic yang dipilih guru di Pengaturan (fallback ke default).
+      const stream = await navigator.mediaDevices.getUserMedia(preferredAudioConstraint());
       const context = new AudioContext();
       const source = context.createMediaStreamSource(stream);
       const analyser = context.createAnalyser();

@@ -20,7 +20,16 @@ export async function POST(req: NextRequest) {
 
   const owned = await getOwnedQuiz(quizId, teacher.id);
   if (!owned) {
-    return NextResponse.json({ error: "Quiz tidak ditemukan" }, { status: 404 });
+    return NextResponse.json({ error: "Kuis tidak ditemukan" }, { status: 404 });
+  }
+
+  // Aturan produk: konten AI harus dikonfirmasi guru dulu sebelum tampil ke
+  // siswa — kuis yang belum divalidasi tidak boleh diluncurkan ke kelas.
+  if (!owned.validatedAt) {
+    return NextResponse.json(
+      { error: "Validasi soal terlebih dahulu sebelum meluncurkan kuis" },
+      { status: 400 }
+    );
   }
 
   const MAX_ATTEMPTS = 5;

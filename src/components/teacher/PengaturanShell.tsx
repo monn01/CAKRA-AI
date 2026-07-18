@@ -8,8 +8,7 @@ import { TeacherTopBar } from "@/components/teacher/TeacherTopBar";
 import { NewSessionForm } from "@/components/dashboard/NewSessionForm";
 import { DisplayPreferences } from "@/components/dashboard/DisplayPreferences";
 import { Button } from "@/components/ui/Button";
-
-const MIC_DEVICE_KEY = "sibi-ai:mic-device-id";
+import { getPreferredMicId, setPreferredMicId } from "@/lib/mic-preference";
 
 type TeacherProfile = {
   name: string;
@@ -46,7 +45,7 @@ export function PengaturanShell({
     // Dibaca setelah mount — localStorage tidak tersedia di server, jadi tidak
     // bisa diturunkan sinkron dari props/state lain.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMicDeviceId(localStorage.getItem(MIC_DEVICE_KEY) ?? "");
+    setMicDeviceId(getPreferredMicId());
 
     if (!navigator.mediaDevices?.enumerateDevices) return;
     navigator.mediaDevices
@@ -62,7 +61,7 @@ export function PengaturanShell({
 
   function handleMicChange(deviceId: string) {
     setMicDeviceId(deviceId);
-    localStorage.setItem(MIC_DEVICE_KEY, deviceId);
+    setPreferredMicId(deviceId);
   }
 
   async function persist(patch: Partial<TeacherProfile> & { lastSeenAppVersion?: string }) {
@@ -211,6 +210,11 @@ export function PengaturanShell({
                     </option>
                   ))}
                 </select>
+                <p className="text-xs text-brand-muted">
+                  Dipakai untuk pemeriksaan kualitas audio saat merekam. Subtitle live (Web Speech
+                  API) selalu mengikuti mikrofon default sistem — atur lewat pengaturan perangkat
+                  kalau perlu diganti.
+                </p>
               </Field>
 
               <div className="flex flex-col gap-2 rounded border border-black/10 bg-brand-cream p-4">

@@ -377,7 +377,7 @@ export function initSocketServer(httpServer: HTTPServer): SocketIOServer {
         });
 
         if (!activeQuiz) {
-          socket.emit("quiz:joined", { success: false, error: "Quiz belum dibuka untuk sesi ini" });
+          socket.emit("quiz:joined", { success: false, error: "Kuis belum dibuka untuk sesi ini" });
           return;
         }
 

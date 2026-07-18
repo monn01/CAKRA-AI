@@ -70,7 +70,7 @@ export function QRCodeGenerator({
       <QRCodeCard
         qrDataUrl={qrDataUrl}
         heading="Rangkuman & Peta Pikiran"
-        helperText="Scan untuk lihat rangkuman, mind map, dan soal latihan"
+        helperText="Scan untuk lihat rangkuman, peta pikiran, dan soal latihan"
         alt="QR code menuju halaman resume pembelajaran"
         dark={dark}
       />

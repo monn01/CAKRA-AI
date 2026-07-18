@@ -123,8 +123,8 @@ export function RingkasanShell({
               <div className="flex flex-col gap-4">
                 {recentMateri.length === 0 ? (
                   <p className="rounded-lg border border-dashed border-black/20 p-6 text-center text-sm text-brand-muted">
-                    Belum ada materi yang dibuat. Mulai sesi baru untuk menghasilkan rangkuman, mind map,
-                    dan quiz.
+                    Belum ada materi yang dibuat. Mulai sesi baru untuk menghasilkan rangkuman, peta
+                    pikiran, dan kuis.
                   </p>
                 ) : (
                   recentMateri.map((item) => {

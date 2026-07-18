@@ -220,7 +220,7 @@ export function LiveDisplay({
               qrDataUrl={quizQrDataUrl}
               heading="Ikuti Kuis"
               helperText="Gabung kuis sesi ini"
-              alt="QR code menuju halaman gabung quiz"
+              alt="QR code menuju halaman gabung kuis"
               dark
               compact
             />

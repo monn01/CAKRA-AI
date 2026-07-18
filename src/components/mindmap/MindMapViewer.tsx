@@ -44,7 +44,7 @@ export function MindMapViewer({
     setGenerating(false);
 
     if (!res.ok) {
-      setError(data.error || "Gagal membuat mind map");
+      setError(data.error || "Gagal membuat peta pikiran");
       return;
     }
 
@@ -66,7 +66,7 @@ export function MindMapViewer({
     setValidating(false);
 
     if (!res.ok) {
-      setError(data.error || "Gagal memvalidasi mind map");
+      setError(data.error || "Gagal memvalidasi peta pikiran");
       return;
     }
 
@@ -87,7 +87,7 @@ export function MindMapViewer({
       link.href = dataUrl;
       link.click();
     } catch {
-      setError("Gagal mengekspor mind map sebagai gambar");
+      setError("Gagal mengekspor peta pikiran sebagai gambar");
     } finally {
       setExporting(false);
     }
@@ -123,7 +123,7 @@ export function MindMapViewer({
 
       doc.save(`mindmap-${title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}.pdf`);
     } catch {
-      setError("Gagal mencetak mind map");
+      setError("Gagal mencetak peta pikiran");
     } finally {
       setPrinting(false);
     }

@@ -45,7 +45,7 @@ export function QuizLobby({
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={qrDataUrl}
-          alt="QR code untuk join quiz"
+          alt="QR code untuk gabung kuis"
           className="h-56 w-56 rounded-3xl bg-white p-3 border-4 border-amber-400 shadow-xl"
         />
 

@@ -12,7 +12,7 @@ const nunito = Nunito({
 export const metadata: Metadata = {
   title: "SIBI-AI — Pembelajaran Inklusif Berbasis AI",
   description:
-    "Tangkap suara guru real-time, rangkuman otomatis, mind map interaktif, dan quiz — untuk sekolah di daerah 3T.",
+    "Tangkap suara guru real-time, rangkuman otomatis, peta pikiran interaktif, dan kuis — untuk sekolah di daerah 3T.",
 };
 
 export default function RootLayout({

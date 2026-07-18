@@ -108,10 +108,10 @@ export default async function DashboardPage() {
     suggestion =
       topQuiz && top && top._count._all > 0
         ? `Berdasarkan tren 30 hari terakhir, topik "${topQuiz.session.title}" mendapat partisipasi kuis tertinggi (${top._count._all} pengerjaan). Pertimbangkan membuat materi lanjutan untuk topik ini.`
-        : "Belum ada cukup data quiz untuk memberi saran. Mainkan quiz bersama siswa untuk melihat insight di sini.";
+        : "Belum ada cukup data kuis untuk memberi saran. Mainkan kuis bersama siswa untuk melihat insight di sini.";
   } else {
     suggestion =
-      "Belum ada cukup data quiz untuk memberi saran. Mainkan quiz bersama siswa untuk melihat insight di sini.";
+      "Belum ada cukup data kuis untuk memberi saran. Mainkan kuis bersama siswa untuk melihat insight di sini.";
   }
 
   const recentMateri = [

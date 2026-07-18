@@ -30,7 +30,7 @@ export function PrintQRButton({
 
     doc.setFontSize(12);
     doc.text(
-      "Scan untuk lihat rangkuman, mind map, dan soal latihan",
+      "Scan untuk lihat rangkuman, peta pikiran, dan soal latihan",
       pageWidth / 2,
       45 + qrSize + 12,
       { align: "center" }

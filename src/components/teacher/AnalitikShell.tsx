@@ -108,7 +108,7 @@ function DistribusiKontenChart({
 }) {
   const total = segments.reduce((sum, s) => sum + s.value, 0);
   if (total === 0) {
-    return <EmptyChartState message="Belum ada materi (ringkasan/mind map/quiz) untuk rentang ini." />;
+    return <EmptyChartState message="Belum ada materi (ringkasan/peta pikiran/kuis) untuk rentang ini." />;
   }
 
   const stops = segments
@@ -153,7 +153,7 @@ function DistribusiKontenChart({
 
 function PerformaKuisChart({ bars }: { bars: { label: string; value: number }[] }) {
   if (bars.length === 0) {
-    return <EmptyChartState message="Belum ada data quiz yang dimainkan untuk topik apa pun." />;
+    return <EmptyChartState message="Belum ada data kuis yang dimainkan untuk topik apa pun." />;
   }
 
   const maxIndex = bars.reduce((best, b, i, arr) => (b.value > arr[best].value ? i : best), 0);

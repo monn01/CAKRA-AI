@@ -59,8 +59,7 @@ npm run lint                # cek lint
 ## Dokumentasi Lengkap
 
 Detail schema database, arsitektur, dan urutan pengembangan modul ada di
-[`taskplan.md`](./taskplan.md). Panduan kerja untuk kontributor (termasuk yang
-dibantu AI coding assistant) ada di [`CLAUDE.md`](./CLAUDE.md).
+[`taskplan.md`](./taskplan.md).
 
 ## Tech Stack
 

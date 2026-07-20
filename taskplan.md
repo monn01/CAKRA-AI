@@ -387,7 +387,7 @@ enum QuizStatus {
 - [x] Guru preview + edit soal sebelum launch ("Revisi Soal")
 - [x] Save ke DB (Quiz + QuizQuestion model)
 
-**Catatan verifikasi Module 5-8 (17/07/2026):** Modul-modul ini ternyata SUDAH diimplementasikan penuh oleh sesi kerja sebelumnya — checklist di atas sempat tidak sinkron dengan kode sungguhan (miss-konsepsi antar sesi Claude Code). Diverifikasi langsung lewat browser hari ini terhadap sesi nyata ("Hewan Peliharaan", IPA Kelas 5B): klik "Generate Rangkuman" → hasil rangkuman + poin kunci + istilah penting tampil dari Ollama lokal (`qwen2.5:7b`) dalam ~15 detik; klik "Generate Mind Map" → React Flow tree interaktif dengan cabang berwarna; klik "Generate Quiz" (10 soal) → soal pilihan ganda + jawaban benar + pembahasan dalam ~25 detik. File yang mengimplementasikan: `src/lib/ai/llm-client.ts`, `src/lib/ai/prompts.ts`, `src/lib/ai/services.ts`, `src/app/api/ai/{summarize,mindmap,quiz}/route.ts`, `src/components/dashboard/{SummaryPanel,QuizPanel}.tsx`, `src/components/mindmap/InteractiveMindMap.tsx`. Satu-satunya sub-task yang belum ada buktinya: streaming response (Module 5) — LLM dipanggil non-streaming (`stream: false` ke Ollama).
+**Catatan verifikasi Module 5-8 (17/07/2026):** Modul-modul ini ternyata SUDAH diimplementasikan penuh oleh sesi kerja sebelumnya — checklist di atas sempat tidak sinkron dengan kode sungguhan. Diverifikasi langsung lewat browser hari ini terhadap sesi nyata ("Hewan Peliharaan", IPA Kelas 5B): klik "Generate Rangkuman" → hasil rangkuman + poin kunci + istilah penting tampil dari Ollama lokal (`qwen2.5:7b`) dalam ~15 detik; klik "Generate Mind Map" → React Flow tree interaktif dengan cabang berwarna; klik "Generate Quiz" (10 soal) → soal pilihan ganda + jawaban benar + pembahasan dalam ~25 detik. File yang mengimplementasikan: `src/lib/ai/llm-client.ts`, `src/lib/ai/prompts.ts`, `src/lib/ai/services.ts`, `src/app/api/ai/{summarize,mindmap,quiz}/route.ts`, `src/components/dashboard/{SummaryPanel,QuizPanel}.tsx`, `src/components/mindmap/InteractiveMindMap.tsx`. Satu-satunya sub-task yang belum ada buktinya: streaming response (Module 5) — LLM dipanggil non-streaming (`stream: false` ke Ollama).
 
 ---
 
@@ -527,7 +527,7 @@ APP_URL="http://localhost:3000"
 
 ## LLM Integration — Implementation Reference
 
-Claude Code: implementasikan `lib/ai/llm-client.ts` persis seperti pattern ini.
+implementasikan `lib/ai/llm-client.ts` persis seperti pattern ini.
 Wrapper harus provider-agnostic — switch provider cukup ganti env variable.
 
 ### Core LLM Client (`lib/ai/llm-client.ts`)
@@ -861,10 +861,6 @@ volumes:
 
 ---
 
-## UI/UX Reference — 4 Layar Utama
-
-Referensi visual buat Claude Code pas ngerjain Module 4, 9-11, 12, dan 14. Style: flat, minim border, whitespace lega, no gradient/shadow berlebih.
-
 ### 1. Panel Kontrol Guru (`/session/[id]/control`)
 Device guru (laptop/tablet), non-projector.
 - Header: judul sesi ("IPA · Fotosintesis") + info kelas ("Kelas 8B")
@@ -906,21 +902,6 @@ Mobile-first (siswa buka di HP via scan QR), single card layout, max-width ~360-
 - **Tidak pakai warna gelap/pekat di background utama** kecuali khusus proyektor (biar gak berat di mata siswa waktu baca resume di HP)
 
 ---
-
-## Claude Code Instructions
-
-Ketika mengerjakan project ini via Claude Code, ikuti aturan:
-
-1. **Baca `taskplan.md` sebelum mulai** — single source of truth
-2. **Kerjakan per module berurutan** — Phase 1 dulu, jangan loncat
-3. **Setiap selesai module, update checklist** — tandai `[x]`
-4. **LLM pakai wrapper pattern di atas** — JANGAN hardcode ke satu provider
-5. **Semua AI output harus JSON parseable** — pakai `parseLLMJson()` helper
-6. **Bahasa Indonesia** — prompt, UI text, error message
-7. **Environment variables** — JANGAN hardcode API key/URL
-8. **Socket.IO custom server** — Next.js App Router gak native support WebSocket
-9. **Prisma** — `npx prisma db push` setelah edit schema
-10. **Setiap module buat commit** — `feat(module-X): deskripsi singkat`
 
 ### Quick Commands
 
